@@ -1,0 +1,69 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.6.33829.357
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{63D2328A-A735-4F25-A0AA-142F4601FD2C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Presentation", "Presentation", "{8469E567-1570-421A-AAD4-9FE921ABEF64}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructure", "Infrastructure", "{F53DC3B3-47E7-4931-A6C9-FF47A2A30257}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FotokopiRandevuAPI.Application", "FotokopiRandevuAPI.Application\FotokopiRandevuAPI.Application.csproj", "{651A528F-F19B-4FA8-AF95-E1EC8949DA8F}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FotokopiRandevuAPI.Domain", "FotokopiRandevuAPI.Domain\FotokopiRandevuAPI.Domain.csproj", "{78D8F103-D930-4E53-920A-388D91F014A4}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FotokopiRandevuAPI.Infrastructure", "FotokopiRandevuAPI.Infrastructure\FotokopiRandevuAPI.Infrastructure.csproj", "{F25CAE29-D054-41FC-8306-DA710B1B8814}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FotokopiRandevuAPI.Persistence", "FotokopiRandevuAPI.Persistence\FotokopiRandevuAPI.Persistence.csproj", "{1D797B3C-B5D6-4AE2-B5AE-03CC74D6C4CC}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FotokopiRandevuAPI.API", "FotokopiRandevuAPI.API\FotokopiRandevuAPI.API.csproj", "{68B0697C-A90A-44A2-A27F-60501B1E6648}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FotokopiRandevuAPI.SignalR", "FotokopiRandevuAPI.SignalR\FotokopiRandevuAPI.SignalR.csproj", "{56AB8917-A0E6-41FD-A44E-8497E48AE542}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{651A528F-F19B-4FA8-AF95-E1EC8949DA8F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{651A528F-F19B-4FA8-AF95-E1EC8949DA8F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{651A528F-F19B-4FA8-AF95-E1EC8949DA8F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{651A528F-F19B-4FA8-AF95-E1EC8949DA8F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{78D8F103-D930-4E53-920A-388D91F014A4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{78D8F103-D930-4E53-920A-388D91F014A4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{78D8F103-D930-4E53-920A-388D91F014A4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{78D8F103-D930-4E53-920A-388D91F014A4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F25CAE29-D054-41FC-8306-DA710B1B8814}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F25CAE29-D054-41FC-8306-DA710B1B8814}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F25CAE29-D054-41FC-8306-DA710B1B8814}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F25CAE29-D054-41FC-8306-DA710B1B8814}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1D797B3C-B5D6-4AE2-B5AE-03CC74D6C4CC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1D797B3C-B5D6-4AE2-B5AE-03CC74D6C4CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1D797B3C-B5D6-4AE2-B5AE-03CC74D6C4CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1D797B3C-B5D6-4AE2-B5AE-03CC74D6C4CC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{68B0697C-A90A-44A2-A27F-60501B1E6648}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{68B0697C-A90A-44A2-A27F-60501B1E6648}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{68B0697C-A90A-44A2-A27F-60501B1E6648}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{68B0697C-A90A-44A2-A27F-60501B1E6648}.Release|Any CPU.Build.0 = Release|Any CPU
+		{56AB8917-A0E6-41FD-A44E-8497E48AE542}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{56AB8917-A0E6-41FD-A44E-8497E48AE542}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{56AB8917-A0E6-41FD-A44E-8497E48AE542}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{56AB8917-A0E6-41FD-A44E-8497E48AE542}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{651A528F-F19B-4FA8-AF95-E1EC8949DA8F} = {63D2328A-A735-4F25-A0AA-142F4601FD2C}
+		{78D8F103-D930-4E53-920A-388D91F014A4} = {63D2328A-A735-4F25-A0AA-142F4601FD2C}
+		{F25CAE29-D054-41FC-8306-DA710B1B8814} = {F53DC3B3-47E7-4931-A6C9-FF47A2A30257}
+		{1D797B3C-B5D6-4AE2-B5AE-03CC74D6C4CC} = {F53DC3B3-47E7-4931-A6C9-FF47A2A30257}
+		{68B0697C-A90A-44A2-A27F-60501B1E6648} = {8469E567-1570-421A-AAD4-9FE921ABEF64}
+		{56AB8917-A0E6-41FD-A44E-8497E48AE542} = {F53DC3B3-47E7-4931-A6C9-FF47A2A30257}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {1EC0EEC2-0714-45BA-A9AE-524314CA3F14}
+	EndGlobalSection
+EndGlobal
