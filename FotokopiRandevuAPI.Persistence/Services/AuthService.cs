@@ -55,7 +55,7 @@ namespace FotokopiRandevuAPI.Persistence.Services
             {
                 await _userManager.AddLoginAsync(user, info); //AspNetUserLogins
 
-                Token token = await _tokenHandler.CreateAccessToken(accessTokenLifeTime, user);
+                Token token = await _tokenHandler.CreateAccessToken(user,accessTokenLifeTime);
                 await _userService.UpdateRefreshTokenAsync(token.RefreshToken, user, token.Expiration, 300);
                 return token;
             }
@@ -90,7 +90,7 @@ namespace FotokopiRandevuAPI.Persistence.Services
             SignInResult result = await _signInManager.CheckPasswordSignInAsync(user, password, false);
             if (result.Succeeded)
             {
-                Token token = await _tokenHandler.CreateAccessToken(accessTokenLifeTime, user);
+                Token token = await _tokenHandler.CreateAccessToken(user,accessTokenLifeTime);
                 await _userService.UpdateRefreshTokenAsync(token.RefreshToken, user, token.Expiration, 300);
                 return token;
             }
@@ -103,7 +103,7 @@ namespace FotokopiRandevuAPI.Persistence.Services
             AppUser? user = await _userManager.Users.FirstOrDefaultAsync(u => u.RefreshToken == refreshToken);
             if (user != null && user?.RefreshTokenEndDate > DateTime.UtcNow)
             {
-                Token token = await _tokenHandler.CreateAccessToken(7, user);
+                Token token = await _tokenHandler.CreateAccessToken(user,7);
                 await _userService.UpdateRefreshTokenAsync(token.RefreshToken, user, token.Expiration, 300);
                 return token;
             }

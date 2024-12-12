@@ -1,4 +1,5 @@
-﻿using FotokopiRandevuAPI.Application.Abstraction.Token;
+﻿using DotNetEnv;
+using FotokopiRandevuAPI.Application.Abstraction.Token;
 using FotokopiRandevuAPI.Application.DTOs;
 using FotokopiRandevuAPI.Domain.Entities.Identity;
 using Microsoft.AspNetCore.Identity;
@@ -59,10 +60,11 @@ namespace FotokopiRandevuAPI.Infrastructure.Services
             return Convert.ToBase64String(number);
         }
 
-        public async Task<Token> CreateAccessToken(int day, AppUser user)
+        public async Task<Token> CreateAccessToken(AppUser user, int day)
         {
-            Application.DTOs.Token token = new();
-            SymmetricSecurityKey securityKey = new(Encoding.UTF8.GetBytes(_configuration["Token:SecurityKey"]));
+            Application.DTOs.Token token = new();     
+
+            SymmetricSecurityKey securityKey = new(Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("Token__SecurityKey")));
             SigningCredentials signingCredentials = new(securityKey, SecurityAlgorithms.HmacSha256);
             var roles = await _userManager.GetRolesAsync(user);
             var claims = new List<Claim>()
@@ -88,7 +90,6 @@ namespace FotokopiRandevuAPI.Infrastructure.Services
             token.RefreshToken = CreateRefreshToken();
             return token;
         }
-
 
     }
 }

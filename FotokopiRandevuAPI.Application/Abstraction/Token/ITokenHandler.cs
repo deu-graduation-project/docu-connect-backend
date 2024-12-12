@@ -9,7 +9,7 @@ namespace FotokopiRandevuAPI.Application.Abstraction.Token
 {
     public interface ITokenHandler
     {
-        Task<DTOs.Token> CreateAccessToken(int day, AppUser user);
+        Task<DTOs.Token> CreateAccessToken(AppUser user,int day );
 
         string CreateRefreshToken();
     }
