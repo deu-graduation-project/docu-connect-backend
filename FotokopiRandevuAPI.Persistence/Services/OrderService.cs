@@ -42,7 +42,8 @@ namespace FotokopiRandevuAPI.Persistence.Services
         readonly IOrderHubService _orderHubService;
         readonly IFileReadRepository _fileReadRepository;
         readonly IUserService _userService;
-        public OrderService(IOrderReadRepository orderReadRepository, IOrderWriteRepository orderWriteRepository, UserManager<AppUser> userManager, IHttpContextAccessor httpContextAccessor, IAgencyProductReadRepository agencyProductReadRepository, IFileWriteRepository fileWriteRepository, ICommentWriteRepository commentWriteRepository, ICommentReadRepository commentReadRepository, IOrderHubService orderHubService, IFileReadRepository fileReadRepository, IUserService userService)
+        readonly IMailService _mailService;
+        public OrderService(IOrderReadRepository orderReadRepository, IOrderWriteRepository orderWriteRepository, UserManager<AppUser> userManager, IHttpContextAccessor httpContextAccessor, IAgencyProductReadRepository agencyProductReadRepository, IFileWriteRepository fileWriteRepository, ICommentWriteRepository commentWriteRepository, ICommentReadRepository commentReadRepository, IOrderHubService orderHubService, IFileReadRepository fileReadRepository, IUserService userService, IMailService mailService)
         {
             _orderReadRepository = orderReadRepository;
             _orderWriteRepository = orderWriteRepository;
@@ -54,6 +55,7 @@ namespace FotokopiRandevuAPI.Persistence.Services
             _orderHubService = orderHubService;
             _fileReadRepository = fileReadRepository;
             _userService = userService;
+            _mailService = mailService;
         }
         private string SeoHelper(string text)
         {
@@ -200,14 +202,15 @@ namespace FotokopiRandevuAPI.Persistence.Services
 
                 copyFiles.Add(copyFile);
             }
-
+            var totalPrice = agencyProduct.Price * createOrder.KopyaSayısı * toplamSayfaSayısı;
+            var orderCode = await GenerateOrderCode();
             var order = new Order
             {
                 Agency = agency,
                 Customer = customer,
-                OrderCode = await GenerateOrderCode(),
+                OrderCode = orderCode,
                 KopyaSayısı = createOrder.KopyaSayısı,
-                TotalPrice = agencyProduct.Price * createOrder.KopyaSayısı * toplamSayfaSayısı,
+                TotalPrice = totalPrice,
                 OrderState = OrderState.Pending,
                 AgencyProduct = agencyProduct,
                 SayfaSayısı=toplamSayfaSayısı,
@@ -219,6 +222,8 @@ namespace FotokopiRandevuAPI.Persistence.Services
             if (response)
             {
                 await _orderWriteRepository.SaveAsync();
+                await _mailService.SendOrderCreatedForAgencyMailAsync(agency.Email, customer.UserName, orderCode, agency.AgencyName, createOrder.KopyaSayısı, toplamSayfaSayısı, totalPrice);
+                await _mailService.SendOrderCreatedForUserMailAsync(customer.Email, customer.UserName, orderCode, agency.AgencyName, createOrder.KopyaSayısı, toplamSayfaSayısı, totalPrice);
                 await _orderHubService.OrderAddedMessage(agency.Id, customer.Id, "Sipariş firma onayı için gönderilmiştir. Siparişlerim sayfasından takip edebilirsiniz.");                             
                 return new()
                 {
@@ -412,6 +417,7 @@ namespace FotokopiRandevuAPI.Persistence.Services
                         }
                         if (state == OrderState.Finished)
                             order.CompletedCode = await GenerateOrderCompletedCode();
+                        await _mailService.SendOrderUpdatedMailAsync(order.Customer.Email, order.Customer.UserName, order.OrderCode, order.Agency.AgencyName, order.CompletedCode, order.KopyaSayısı, order.SayfaSayısı, order.TotalPrice, state);
                         order.OrderState = state;
                         
                         await _orderWriteRepository.SaveAsync();

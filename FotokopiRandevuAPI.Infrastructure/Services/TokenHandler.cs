@@ -77,8 +77,8 @@ namespace FotokopiRandevuAPI.Infrastructure.Services
             };
             token.Expiration = DateTime.UtcNow.AddDays(day);
             JwtSecurityToken securityToken = new(
-                audience: _configuration["Token:Audience"],
-                issuer: _configuration["Token:Issuer"],
+                audience: Environment.GetEnvironmentVariable("Token__Audience"),
+                issuer: Environment.GetEnvironmentVariable("Token__Issuer"),
                 expires: token.Expiration,
                 notBefore: DateTime.UtcNow,
                 signingCredentials: signingCredentials,
