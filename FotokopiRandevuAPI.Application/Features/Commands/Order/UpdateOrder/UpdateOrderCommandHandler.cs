@@ -23,7 +23,7 @@ namespace FotokopiRandevuAPI.Application.Features.Commands.Order.UpdateOrder
             {
                 OrderCode=request.OrderCode,
                 CommentText=request.Comment,
-                StarRating=request.StarRating,
+                StarRating=request.StarRating.Value,
             },request.removeCommentIds,request.CompletedCode);
             return new()
             {

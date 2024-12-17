@@ -121,7 +121,7 @@ namespace FotokopiRandevuAPI.Persistence.Services
                 string resetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
                 byte[] tokenBytes = Encoding.UTF8.GetBytes(resetToken);
                 resetToken = WebEncoders.Base64UrlEncode(tokenBytes);
-                await _mailService.SendPasswordResetMailAsync(user.Email, user.Id, resetToken);
+                await _mailService.SendPasswordResetMailAsync(user.Email, user.Id, resetToken,user.UserName);
             }
 
         }

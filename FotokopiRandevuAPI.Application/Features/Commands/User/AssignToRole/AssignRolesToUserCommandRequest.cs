@@ -10,6 +10,6 @@ namespace FotokopiRandevuAPI.Application.Features.Commands.User.AssignToRole
     public class AssignRolesToUserCommandRequest:IRequest<AssignRolesToUserCommandResponse>
     {
         public string UserId { get; set; }
-        public string[]? Roles { get; set; }
+        public string[] Roles { get; set; }
     }
 }

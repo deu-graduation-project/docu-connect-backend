@@ -1,5 +1,4 @@
-﻿using FotokopiRandevuAPI.Application.Features.Commands.User.VerifyResetToken;
-using FotokopiRandevuAPI.Application.Abstraction.Services;
+﻿using FotokopiRandevuAPI.Application.Abstraction.Services;
 using MediatR;
 using System;
 using System.Collections.Generic;
@@ -7,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FotokopiRandevuAPI.Application.Features.Commands.User.VerifyResetToken
+namespace FotokopiRandevuAPI.Application.Features.Commands.Auth.VerifyResetToken
 {
     public class VerifyResetTokenCommandHandler : IRequestHandler<VerifyResetTokenCommandRequest, VerifyResetTokenCommandResponse>
     {
@@ -20,7 +19,7 @@ namespace FotokopiRandevuAPI.Application.Features.Commands.User.VerifyResetToken
 
         public async Task<VerifyResetTokenCommandResponse> Handle(VerifyResetTokenCommandRequest request, CancellationToken cancellationToken)
         {
-           bool state= await _authService.VerifyResetTokenAsync(request.ResetToken, request.UserId);
+            bool state = await _authService.VerifyResetTokenAsync(request.ResetToken, request.UserId);
             return new()
             {
                 State = state

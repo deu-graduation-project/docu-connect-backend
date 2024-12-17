@@ -1,4 +1,5 @@
 ﻿using DenemeTakipAPI.Application.DTOs.User;
+using FotokopiRandevuAPI.Application.DTOs;
 using FotokopiRandevuAPI.Application.DTOs.User;
 using FotokopiRandevuAPI.Domain.Entities.Identity;
 using System;
@@ -17,8 +18,9 @@ namespace FotokopiRandevuAPI.Application.Abstraction.Services
         Task<string[]> GetUserRoles(string username);
         Task AssignToRolesAsync(string userId, string[] roles);
         //Task<UserListSingle> GetUserById(string userId);
-        Task UpdatePassword(string userId, string resetToken, string newPassword);
+        Task<SucceededMessageResponse> UpdatePassword(string userId, string resetToken, string newPassword);
 
+        Task<SucceededMessageResponse> UpdateUserPassword(string currentPassword, string newPassword);
         Task<BeAnAgencyResponse> BeAnAgencyRequestAsync(BeAnAgency beAnAgency);
         Task<BeAnAgencyResponse> BeAnAgencyConfirmAsync(BeAnAgencyConfirm beAnAgency);
 

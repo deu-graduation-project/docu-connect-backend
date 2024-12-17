@@ -2,6 +2,7 @@
 using DenemeTakipAPI.Application.DTOs.User;
 using FotokopiRandevuAPI.Application.Abstraction.Hubs;
 using FotokopiRandevuAPI.Application.Abstraction.Services;
+using FotokopiRandevuAPI.Application.DTOs;
 using FotokopiRandevuAPI.Application.DTOs.User;
 using FotokopiRandevuAPI.Application.Repositories.UserRepositories.AgencyRepositories;
 using FotokopiRandevuAPI.Domain.Entities.Identity;
@@ -125,24 +126,123 @@ namespace FotokopiRandevuAPI.Persistence.Services
             }
             return new string[] { };
         }
-
-        public async Task UpdatePassword(string userId, string resetToken, string newPassword)
+        public async Task<SucceededMessageResponse> UpdatePassword(string userId, string resetToken, string newPassword)
         {
-            var user= await _userManager.FindByIdAsync(userId);
-            if(user != null) 
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+                throw new Exception("Kullanıcı bulunamadı.");
+            if (user != null)
             {
-                byte[] tokenBytes= WebEncoders.Base64UrlDecode(resetToken);
-                resetToken=Encoding.UTF8.GetString(tokenBytes);
-                IdentityResult result=await _userManager.ResetPasswordAsync(user, resetToken,newPassword);
+                byte[] tokenBytes = WebEncoders.Base64UrlDecode(resetToken);
+                resetToken = Encoding.UTF8.GetString(tokenBytes);
+                IdentityResult result = await _userManager.ResetPasswordAsync(user, resetToken, newPassword);
                 if (result.Succeeded)
                 {
                     await _userManager.UpdateSecurityStampAsync(user);
+                    return new()
+                    {
+                        Succeeded = true,
+                        Message = "Şifreniz başarıyla yenilenmiştir."
+                    };
                 }
                 else
-                    throw new Exception("Şifre yenilenirken bir hata oluştu.");
+                {
+                    var errorMessages = new List<string>();
+                    foreach (var error in result.Errors)
+                    {
+                        switch (error.Code)
+                        {
+                            case "PasswordTooShort":
+                                errorMessages.Add("Yeni şifre çok kısa. En az 6 karakter olmalıdır.");
+                                break;
+                            case "PasswordRequiresNonAlphanumeric":
+                                errorMessages.Add("Yeni şifre en az bir özel karakter içermelidir.");
+                                break;
+                            case "PasswordRequiresDigit":
+                                errorMessages.Add("Yeni şifre en az bir rakam içermelidir.");
+                                break;
+                            case "PasswordRequiresLower":
+                                errorMessages.Add("Yeni şifre en az bir küçük harf içermelidir.");
+                                break;
+                            case "PasswordRequiresUpper":
+                                errorMessages.Add("Yeni şifre en az bir büyük harf içermelidir.");
+                                break;
+                            case "InvalidToken":
+                                errorMessages.Add("Geçersiz veya süresi dolmuş token. Lütfen tekrar deneyin.");
+                                break;
+                            default:
+                                errorMessages.Add("Şifre değiştirilirken bilinmeyen bir hata oluştu.");
+                                break;
+                        }
+                    }
+
+                    var detailedErrorMessage = string.Join(" ", errorMessages);
+
+                    return new()
+                    {
+                        Succeeded = false,
+                        Message = $"{detailedErrorMessage}"
+                    };
+                }
+            }
+            return new()
+            {
+                Succeeded = false,
+                Message = "Kullanıcı bulunamadı."
+            };
+        }
+        public async Task<SucceededMessageResponse> UpdateUserPassword(string currentPassword, string newPassword)
+        {
+            var user = await ContextUser();
+            var result = await _userManager.ChangePasswordAsync(user, currentPassword, newPassword);
+            if (result.Succeeded)
+            {
+
+                return new()
+                {
+                    Succeeded = true,
+                    Message = "Şifreniz başarıyla değiştirilmiştir."
+                };
+            }
+            else
+            {
+                var errorMessages = new List<string>();
+                foreach (var error in result.Errors)
+                {
+                    switch (error.Code)
+                    {
+                        case "PasswordMismatch":
+                            errorMessages.Add("Mevcut şifre yanlış.");
+                            break;
+                        case "PasswordTooShort":
+                            errorMessages.Add("Yeni şifre çok kısa. En az 6 karakter olmalıdır.");
+                            break;
+                        case "PasswordRequiresNonAlphanumeric":
+                            errorMessages.Add("Yeni şifre en az bir özel karakter içermelidir.");
+                            break;
+                        case "PasswordRequiresDigit":
+                            errorMessages.Add("Yeni şifre en az bir rakam içermelidir.");
+                            break;
+                        case "PasswordRequiresLower":
+                            errorMessages.Add("Yeni şifre en az bir küçük harf içermelidir.");
+                            break;
+                        case "PasswordRequiresUpper":
+                            errorMessages.Add("Yeni şifre en az bir büyük harf içermelidir.");
+                            break;
+                        default:
+                            errorMessages.Add("Şifre değiştirilirken bilinmeyen bir hata oluştu.");
+                            break;
+                    }
+                }
+                var detailedErrorMessage = string.Join(" ", errorMessages);
+
+                return new()
+                {
+                    Succeeded = false,
+                    Message = $"{detailedErrorMessage}"
+                };
             }
         }
-
         public async Task UpdateRefreshTokenAsync(string refreshToken, AppUser user, DateTime accessTokenDate, int addOnAccessTokenDate)
         {
             if (user != null)
@@ -319,7 +419,17 @@ namespace FotokopiRandevuAPI.Persistence.Services
                 query = query.OrderBy(u => u.CreatedDate);
             }
             var totalCount = await query.CountAsync();
-            var beAnAgencyRequest= await query.Skip((page-1)*size).Take(size).ToListAsync();
+            var beAnAgencyRequest= await query.Skip((page - 1) * size).Take(size).Select(u => new
+            {
+                BeAnAgencyRequestId = u.Id,
+                AgencyName=u.AgencyName,
+                AgencyId=u.AgencyId,
+                BeAnAgencyRequestState=u.State,
+                Address=u.Address,
+                Name=u.Customer.Name,
+                Surname=u.Customer.Surname,
+                Email=u.Customer.Email
+            }).ToListAsync();
             return new()
             {
                 TotalCount = totalCount,
@@ -366,6 +476,7 @@ namespace FotokopiRandevuAPI.Persistence.Services
         {
             var agency =await _userManager.Users.OfType<Agency>().Where(u => u.Id == agencyId && u.IsConfirmedAgency).Include(u=>u.AgencyProducts).Select(u => new
             {
+                AgencyId=u.Id,
                 AgencyName = u.AgencyName,
                 AgencyBio = u.AgencyBio,
                 Province = u.Address.Province,
@@ -392,5 +503,6 @@ namespace FotokopiRandevuAPI.Persistence.Services
                 Agency = agency
             };
         }
+
     }
 }

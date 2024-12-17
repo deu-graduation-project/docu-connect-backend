@@ -11,7 +11,7 @@ namespace FotokopiRandevuAPI.Application.Features.Commands.Order.UpdateOrder
     {
         public string? OrderState { get; set; }
         public string? Comment { get; set; }
-        public int StarRating { get; set; } = 1;
+        public int? StarRating { get; set; } = 1;
         public string OrderCode { get; set; }
         public List<string>? removeCommentIds { get; set; }=new List<string>();
         public string? CompletedCode { get; set; }

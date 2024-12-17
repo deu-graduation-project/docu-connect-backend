@@ -3,6 +3,8 @@ using FotokopiRandevuAPI.Application.Features.Commands.User.AssignToRole;
 using FotokopiRandevuAPI.Application.Features.Commands.User.BeAnAgency;
 using FotokopiRandevuAPI.Application.Features.Commands.User.BeAnAgencyConfirm;
 using FotokopiRandevuAPI.Application.Features.Commands.User.CreateUser;
+using FotokopiRandevuAPI.Application.Features.Commands.User.UpdatePassword;
+using FotokopiRandevuAPI.Application.Features.Commands.User.UpdateUserPassword;
 using FotokopiRandevuAPI.Application.Features.Queries.User.GetAgencies;
 using FotokopiRandevuAPI.Application.Features.Queries.User.GetBeAnAgencyRequests;
 using FotokopiRandevuAPI.Application.Features.Queries.User.GetSingleAgency;
@@ -77,6 +79,21 @@ namespace FotokopiRandevuAPI.API.Controllers
         public async Task<IActionResult> AssignRolesToUser(AssignRolesToUserCommandRequest assignRolesToUserCommandRequest)
         {
             AssignRolesToUserCommandResponse response = await _mediator.Send(assignRolesToUserCommandRequest);
+            return Ok(response);
+        }
+        [HttpPost("[action]")]
+        [Authorize(AuthenticationSchemes = "Admin")]
+
+        public async Task<IActionResult> UpdateUserPassword([FromBody] UpdateUserPasswordCommandRequest updateUserPasswordCommandRequest)
+        {
+            UpdateUserPasswordCommandResponse response = await _mediator.Send(updateUserPasswordCommandRequest);
+            return Ok(response);
+        }
+        [HttpPost("[action]")]
+
+        public async Task<IActionResult> UpdatePassword([FromBody] UpdatePasswordCommandRequest updatePasswordCommandRequest)
+        {
+            UpdatePasswordCommandResponse response = await _mediator.Send(updatePasswordCommandRequest);
             return Ok(response);
         }
     }

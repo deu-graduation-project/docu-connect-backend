@@ -48,7 +48,7 @@ namespace FotokopiRandevuAPI.API.Controllers
         }
         [HttpGet("[action]")]
         [Authorize(AuthenticationSchemes = "Admin")]
-        [Authorize(Roles = "agency")]
+        [Authorize(Roles = "agency,admin")]
         public async Task<IActionResult> GetProducts([FromQuery] GetProductsQueryRequest getProductsQueryRequest)
         {
             GetProductsQueryResponse response = await _mediator.Send(getProductsQueryRequest);

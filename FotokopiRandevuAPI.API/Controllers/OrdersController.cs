@@ -52,7 +52,7 @@ namespace FotokopiRandevuAPI.API.Controllers
             UpdateOrderCommandResponse response = await _mediator.Send(updateOrderCommandRequest);
             return Ok(response);
         }
-        [HttpPost("[action]")]
+        [HttpGet("[action]")]
         [Authorize(AuthenticationSchemes = "Admin")]
         [Authorize(Roles = "admin,agency")]
         public async Task<IActionResult> GetAgencyAnalytics([FromQuery] GetAgencyAnalyticsCommandRequest getAgencyAnalyticsCommandRequest)
