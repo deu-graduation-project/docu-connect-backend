@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
 using Org.BouncyCastle.Asn1.Ocsp;
 using System;
 using System.Collections.Generic;
@@ -54,7 +55,7 @@ namespace FotokopiRandevuAPI.Persistence.Services
         }
         public async Task UpdateStarRating(string agencyId)
         {
-            var agency = await _userManager.Users.OfType<Agency>().Include(u=>u.Comments).FirstOrDefaultAsync(u=>u.Id==agencyId);
+            var agency = await _userManager.Users.OfType<Agency>().Include(u => u.Comments).FirstOrDefaultAsync(u => u.Id == agencyId);
             if (agency == null)
                 throw new Exception("Böyle bir firma bulunmamaktadır.");
 
@@ -78,9 +79,9 @@ namespace FotokopiRandevuAPI.Persistence.Services
                 Name = createUser.Name,
                 Surname = createUser.Surname,
             };
-            IdentityResult result = await _userManager.CreateAsync(customer,createUser.Password);
-            CreateUserResponse response = new() { Succeeded=result.Succeeded};
-            if(result.Succeeded)
+            IdentityResult result = await _userManager.CreateAsync(customer, createUser.Password);
+            CreateUserResponse response = new() { Succeeded = result.Succeeded };
+            if (result.Succeeded)
             {
                 await _userManager.AddToRoleAsync(customer, "customer");
                 response.Message = "Kullanıcı başarıyla oluşturuldu.";
@@ -116,12 +117,12 @@ namespace FotokopiRandevuAPI.Persistence.Services
 
         public async Task<string[]> GetUserRoles(string username)
         {
-            AppUser user= await _userManager.FindByIdAsync(username);
+            AppUser user = await _userManager.FindByIdAsync(username);
             if (user == null)
             {
-                var userRoles= await _userManager.FindByEmailAsync(username);
+                var userRoles = await _userManager.FindByEmailAsync(username);
             }
-            if(user==null)
+            if (user == null)
                 user = await _userManager.FindByIdAsync(username);
             if (user != null)
             {
@@ -350,7 +351,7 @@ namespace FotokopiRandevuAPI.Persistence.Services
         public async Task<BeAnAgencyResponse> BeAnAgencyConfirmAsync(BeAnAgencyConfirm beAnAgency)
         {
             var request = await _beAnAgencyRequestReadRepository.GetByIdAsync(beAnAgency.BeAnAgencyRequestId);
-            if(request != null)
+            if (request != null)
             {
                 var user = await _userManager.FindByIdAsync(request.AgencyId) as Agency;
                 if (user != null)
@@ -400,7 +401,7 @@ namespace FotokopiRandevuAPI.Persistence.Services
             };
         }
 
-        public async Task<GetBeAnAgencyRequestsPaginated> GetBeAnAgencyRequests(int page, int size, string? orderby,string? requestId,string? usernameOrEmail,string? state)
+        public async Task<GetBeAnAgencyRequestsPaginated> GetBeAnAgencyRequests(int page, int size, string? orderby, string? requestId, string? usernameOrEmail, string? state)
         {
             var query = _beAnAgencyRequestReadRepository.GetAll(false).AsQueryable();
             if (!string.IsNullOrEmpty(state))
@@ -412,7 +413,8 @@ namespace FotokopiRandevuAPI.Persistence.Services
                 else
                 {
                     throw new Exception("Firma olma isteği durumu için geçersiz bir değer girilmiştir.");
-;               }
+                    ;
+                }
             }
 
             if (!string.IsNullOrEmpty(requestId))
@@ -422,9 +424,9 @@ namespace FotokopiRandevuAPI.Persistence.Services
 
             if (!string.IsNullOrEmpty(usernameOrEmail))
             {
-                var lowerSearch = usernameOrEmail.ToLower(); 
+                var lowerSearch = usernameOrEmail.ToLower();
 
-                query = query.Where(u => u.Customer.UserName.ToLower().Contains(usernameOrEmail) 
+                query = query.Where(u => u.Customer.UserName.ToLower().Contains(usernameOrEmail)
                                       || u.Customer.Email.ToLower().Contains(usernameOrEmail));
             }
             if (!string.IsNullOrEmpty(orderby))
@@ -443,31 +445,55 @@ namespace FotokopiRandevuAPI.Persistence.Services
                 query = query.OrderBy(u => u.CreatedDate);
             }
             var totalCount = await query.CountAsync();
-            var beAnAgencyRequest= await query.Skip((page - 1) * size).Take(size).Select(u => new
+            var beAnAgencyRequest = await query
+               .Skip((page - 1) * size)
+               .Take(size)
+               .ToListAsync();
+
+            var result = new List<object>();
+            foreach (var u in beAnAgencyRequest)
             {
-                BeAnAgencyRequestId = u.Id,
-                AgencyName=u.AgencyName,
-                AgencyId=u.AgencyId,
-                BeAnAgencyRequestState=u.State,
-                Address=u.Address,
-                Name=u.Customer.Name,
-                Surname=u.Customer.Surname,
-                Email=u.Customer.Email
-            }).ToListAsync();
+                byte[] profilePhoto = null;
+                var user = await _userManager.FindByIdAsync(u.AgencyId);
+                var agency = user as Agency;
+
+                if (agency != null && !string.IsNullOrEmpty(agency.ProfilePhotoPath))
+                {
+                    var fullPath = Path.Combine(_webHostEnvironment.WebRootPath, agency.ProfilePhotoPath.TrimStart('/'));
+                    if (File.Exists(fullPath))
+                    {
+                        profilePhoto = await File.ReadAllBytesAsync(fullPath);
+                    }
+                }
+
+                result.Add(new
+                {
+                    BeAnAgencyRequestId = u.Id,
+                    AgencyName = u.AgencyName,
+                    AgencyId = u.AgencyId,
+                    BeAnAgencyRequestState = u.State,
+                    Address = u.Address,
+                    Name = u.Customer?.Name,
+                    Surname = u.Customer?.Surname,
+                    Email = u.Customer?.Email,
+                    ProfilePhoto = profilePhoto
+                });
+            }
+
             return new()
             {
                 TotalCount = totalCount,
-                BeAnAgencyRequests = beAnAgencyRequest,
+                BeAnAgencyRequests = result,
             };
         }
 
-        public async Task<GetAgenciesPaginated> GetAgencies(int page, int size, string? agencyName, string? province, string? district,string? orderBy)
+        public async Task<GetAgenciesPaginated> GetAgencies(int page, int size, string? agencyName, string? province, string? district, string? orderBy)
         {
-            var query = _userManager.Users.OfType<Agency>().Where(u=>u.IsConfirmedAgency==true).AsQueryable();
+            var query = _userManager.Users.OfType<Agency>().Where(u => u.IsConfirmedAgency == true).AsQueryable();
             if (!string.IsNullOrEmpty(agencyName))
                 query = query.Where(u => u.AgencyName.Contains(agencyName));
-            if(!string.IsNullOrEmpty(province))
-                query = query.Where(u => u.Address.Province.ToLower()== province.ToLower());
+            if (!string.IsNullOrEmpty(province))
+                query = query.Where(u => u.Address.Province.ToLower() == province.ToLower());
             if (!string.IsNullOrEmpty(district))
                 query = query.Where(u => u.Address.District.ToLower() == district.ToLower());
             if (!string.IsNullOrEmpty(orderBy))
@@ -485,7 +511,7 @@ namespace FotokopiRandevuAPI.Persistence.Services
                 Province = a.Address.Province,
                 District = a.Address.District,
                 Extra = a.Address.Extra,
-                StarRating=a.StarRating
+                StarRating = a.StarRating
             }).ToListAsync();
 
             return new()
@@ -498,9 +524,9 @@ namespace FotokopiRandevuAPI.Persistence.Services
 
         public async Task<GetSingleAgencyResponse> GetSingleAgency(string agencyId)
         {
-            var agency =await _userManager.Users.OfType<Agency>().Where(u => u.Id == agencyId && u.IsConfirmedAgency).Include(u=>u.AgencyProducts).Select(u => new
+            var agency = await _userManager.Users.OfType<Agency>().Where(u => u.Id == agencyId && u.IsConfirmedAgency).Include(u => u.AgencyProducts).Select(u => new
             {
-                AgencyId=u.Id,
+                AgencyId = u.Id,
                 AgencyName = u.AgencyName,
                 AgencyBio = u.AgencyBio,
                 Province = u.Address.Province,
@@ -508,11 +534,11 @@ namespace FotokopiRandevuAPI.Persistence.Services
                 AddressExtra = u.Address.Extra,
                 AgencyProducts = u.AgencyProducts.Select(p => new
                 {
-                    PrintType=p.Product.PrintType,
+                    PrintType = p.Product.PrintType,
                     ColorOption = p.Product.ColorOption,
                     PaperType = p.Product.PaperType,
                     Price = p.Price,
-                    ProductId=p.Id,
+                    ProductId = p.Id,
                 }),
                 Comments = u.Comments.Select(c => new
                 {
