@@ -8,10 +8,12 @@ using FotokopiRandevuAPI.Application.Repositories.UserRepositories.AgencyReposit
 using FotokopiRandevuAPI.Domain.Entities.Identity;
 using FotokopiRandevuAPI.Domain.Entities.Identity.Extra;
 using FotokopiRandevuAPI.Persistence.Contexts;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
+using Org.BouncyCastle.Asn1.Ocsp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,8 +29,9 @@ namespace FotokopiRandevuAPI.Persistence.Services
         readonly IBeAnAgencyRequestWriteRepository _beAnAgencyRequestWriteRepository;
         readonly IBeAnAgencyRequestReadRepository _beAnAgencyRequestReadRepository;
         readonly fotokopiRandevuAPIDbContext _dbContext;
+        private readonly IWebHostEnvironment _webHostEnvironment;
         readonly IUserHubService _userHubService;
-        public UserService(UserManager<AppUser> userManager, IHttpContextAccessor httpContextAccessor, IBeAnAgencyRequestWriteRepository beAnAgencyRequestWriteRepository, IBeAnAgencyRequestReadRepository beAnAgencyRequestReadRepository, fotokopiRandevuAPIDbContext dbContext, IUserHubService userHubService)
+        public UserService(UserManager<AppUser> userManager, IHttpContextAccessor httpContextAccessor, IBeAnAgencyRequestWriteRepository beAnAgencyRequestWriteRepository, IBeAnAgencyRequestReadRepository beAnAgencyRequestReadRepository, fotokopiRandevuAPIDbContext dbContext, IUserHubService userHubService, IWebHostEnvironment webHostEnvironment)
         {
             _userManager = userManager;
             _httpContextAccessor = httpContextAccessor;
@@ -36,6 +39,7 @@ namespace FotokopiRandevuAPI.Persistence.Services
             _beAnAgencyRequestReadRepository = beAnAgencyRequestReadRepository;
             _dbContext = dbContext;
             _userHubService = userHubService;
+            _webHostEnvironment = webHostEnvironment;
         }
 
         private async Task<AppUser> ContextUser()
@@ -258,6 +262,25 @@ namespace FotokopiRandevuAPI.Persistence.Services
         public async Task<BeAnAgencyResponse> BeAnAgencyRequestAsync(BeAnAgency beAnAgency)
         {
             var generatedId = Guid.NewGuid().ToString();
+
+            string? profilePhotoPath = null;
+            if (beAnAgency.ProfilePhoto != null)
+            {
+                string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "profilePhotos");
+
+                if (!Directory.Exists(uploadsFolder))
+                    Directory.CreateDirectory(uploadsFolder);
+
+                string fileName = $"{Guid.NewGuid()}{Path.GetExtension(beAnAgency.ProfilePhoto.FileName)}";
+                string filePath = Path.Combine(uploadsFolder, fileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await beAnAgency.ProfilePhoto.CopyToAsync(stream);
+                }
+
+                profilePhotoPath = $"/profilePhotos/{fileName}";
+            }
             var agency = new Agency()
             {
                 Id = generatedId,
@@ -268,6 +291,7 @@ namespace FotokopiRandevuAPI.Persistence.Services
                 AgencyName = beAnAgency.AgencyName,
                 Address = beAnAgency.Address,
                 IsConfirmedAgency = false,
+                ProfilePhotoPath = profilePhotoPath
             };
             IdentityResult result = await _userManager.CreateAsync(agency, beAnAgency.Password);
             BeAnAgencyResponse response = new() { Succeeded = result.Succeeded };

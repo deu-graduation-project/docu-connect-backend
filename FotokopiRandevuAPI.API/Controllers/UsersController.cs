@@ -35,7 +35,7 @@ namespace FotokopiRandevuAPI.API.Controllers
         }
         [HttpPost("[action]")]
 
-        public async Task<IActionResult> BeAnAgency(BeAnAgencyCommandRequest beAnAgencyCommandRequest)
+        public async Task<IActionResult> BeAnAgency([FromForm] BeAnAgencyCommandRequest beAnAgencyCommandRequest)
         {
             BeAnAgencyCommandResponse response = await _mediator.Send(beAnAgencyCommandRequest);
             return Ok(response);

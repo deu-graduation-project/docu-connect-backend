@@ -29,7 +29,8 @@ namespace FotokopiRandevuAPI.Application.Features.Commands.User.BeAnAgency
                 PasswordConfirm = request.PasswordConfirm,
                 AgencyName = request.AgencyName,
                 Address = request.Address,
-                AgencyBio=request.AgencyBio
+                AgencyBio=request.AgencyBio,
+                ProfilePhoto=request.ProfilePhoto 
             });
             return new()
             {

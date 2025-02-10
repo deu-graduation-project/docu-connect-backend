@@ -1,5 +1,7 @@
 ﻿using FotokopiRandevuAPI.Domain.Entities.Identity;
 using FotokopiRandevuAPI.Domain.Entities.Identity.Extra;
+using Microsoft.AspNetCore.Http;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,6 +22,8 @@ namespace FotokopiRandevuAPI.Application.DTOs.User
         public string AgencyName { get; set; }
         public Address Address { get; set; }
         public string? AgencyBio { get; set; }
+        [JsonIgnore]
+        public IFormFile? ProfilePhoto { get; set; }
 
     }
 }

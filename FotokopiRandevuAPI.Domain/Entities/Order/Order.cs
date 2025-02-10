@@ -19,7 +19,6 @@ namespace FotokopiRandevuAPI.Domain.Entities.Order
         public OrderState OrderState { get; set; }
         public AgencyProduct AgencyProduct { get; set; }=new AgencyProduct();
         public int KopyaSayısı { get; set; }
-        //Unique bir ordercode üretilip kullanıcı ve firmaya sunulacak.
         public string OrderCode { get; set; }
         public int SayfaSayısı { get; set; }
         public string?  CompletedCode { get; set; }
