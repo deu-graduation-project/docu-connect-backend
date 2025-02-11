@@ -1,8 +1,10 @@
 ﻿using FotokopiRandevuAPI.Application.Abstraction.Services;
+using FotokopiRandevuAPI.Application.Features.Commands.Product.DeleteAgencyProducts;
 using FotokopiRandevuAPI.Application.Features.Commands.User.AssignToRole;
 using FotokopiRandevuAPI.Application.Features.Commands.User.BeAnAgency;
 using FotokopiRandevuAPI.Application.Features.Commands.User.BeAnAgencyConfirm;
 using FotokopiRandevuAPI.Application.Features.Commands.User.CreateUser;
+using FotokopiRandevuAPI.Application.Features.Commands.User.UpdateAgencyInfos;
 using FotokopiRandevuAPI.Application.Features.Commands.User.UpdatePassword;
 using FotokopiRandevuAPI.Application.Features.Commands.User.UpdateUserPassword;
 using FotokopiRandevuAPI.Application.Features.Queries.User.GetAgencies;
@@ -94,6 +96,15 @@ namespace FotokopiRandevuAPI.API.Controllers
         public async Task<IActionResult> UpdatePassword([FromBody] UpdatePasswordCommandRequest updatePasswordCommandRequest)
         {
             UpdatePasswordCommandResponse response = await _mediator.Send(updatePasswordCommandRequest);
+            return Ok(response);
+        }
+
+        [HttpPut("[action]")]
+        [Authorize(AuthenticationSchemes = "Admin")]
+        [Authorize(Roles = "agency,admin")]
+        public async Task<IActionResult> UpdateAgencyInfos([FromForm]UpdateAgencyInfosCommandRequest updateAgencyInfosCommandRequest)
+        {
+            UpdateAgencyInfosCommandResponse response = await _mediator.Send(updateAgencyInfosCommandRequest);
             return Ok(response);
         }
     }

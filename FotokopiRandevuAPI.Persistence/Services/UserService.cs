@@ -511,7 +511,10 @@ namespace FotokopiRandevuAPI.Persistence.Services
                 Province = a.Address.Province,
                 District = a.Address.District,
                 Extra = a.Address.Extra,
-                StarRating = a.StarRating
+                StarRating = a.StarRating,
+                ProfilePhoto = !string.IsNullOrEmpty(a.ProfilePhotoPath) && File.Exists(Path.Combine(_webHostEnvironment.WebRootPath, a.ProfilePhotoPath.TrimStart('/')))
+                        ? File.ReadAllBytes(Path.Combine(_webHostEnvironment.WebRootPath, a.ProfilePhotoPath.TrimStart('/')))
+                        : null
             }).ToListAsync();
 
             return new()
@@ -545,6 +548,9 @@ namespace FotokopiRandevuAPI.Persistence.Services
                     CommentText = c.CommentText,
                     StarRating = c.StarRating != 0 ? c.StarRating.ToString() : "Bu firma daha önce bir değerlendirilmedi."
                 }),
+                ProfilePhoto = !string.IsNullOrEmpty(u.ProfilePhotoPath) && File.Exists(Path.Combine(_webHostEnvironment.WebRootPath, u.ProfilePhotoPath.TrimStart('/')))
+                ? File.ReadAllBytes(Path.Combine(_webHostEnvironment.WebRootPath, u.ProfilePhotoPath.TrimStart('/')))
+                : null
             }).FirstOrDefaultAsync();
             if (agency == null)
                 throw new Exception("Böyle bir onaylı firma bulunamadı.");
@@ -554,5 +560,71 @@ namespace FotokopiRandevuAPI.Persistence.Services
             };
         }
 
+        public async Task<SucceededMessageResponse> UpdateAgencyInfos(string? name, string? surname, string? agencyName, string? province, string? district, string? extra, string? agencyBio, IFormFile? ProfilePhoto)
+        {
+            var agency = await ContextUser() as Agency;
+
+            if (agency == null)
+            {
+                return new()
+                {
+                    Succeeded = false,
+                    Message = "Firma bulunamadı."
+                };
+            }
+            if (name != null)
+                agency.Name = name;
+            if (surname != null)
+                agency.Surname = surname;
+            if (agencyName != null)
+                agency.AgencyName = agencyName;
+            if (province != null)
+                agency.Address.Province = province;
+            if (district != null)
+                agency.Address.District = district;
+            if (extra != null)
+                agency.Address.Extra = extra;
+            if (agencyBio != null)
+                agency.AgencyBio = agencyBio;
+            if (ProfilePhoto != null)
+            {
+                string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "profilePhotos");
+                if (!Directory.Exists(uploadsFolder))
+                    Directory.CreateDirectory(uploadsFolder);
+
+                if (!string.IsNullOrEmpty(agency.ProfilePhotoPath))
+                {
+                    string existingFilePath = Path.Combine(_webHostEnvironment.WebRootPath, agency.ProfilePhotoPath.TrimStart('/'));
+                    if (System.IO.File.Exists(existingFilePath))
+                    {
+                        System.IO.File.Delete(existingFilePath);
+                    }
+                }
+
+                string fileName = $"{Guid.NewGuid()}{Path.GetExtension(ProfilePhoto.FileName)}";
+                string filePath = Path.Combine(uploadsFolder, fileName);
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await ProfilePhoto.CopyToAsync(stream);
+                }
+                agency.ProfilePhotoPath = $"/profilePhotos/{fileName}";
+            }
+            var result = await _userManager.UpdateAsync(agency);
+            if (!result.Succeeded)
+            {
+                return new SucceededMessageResponse
+                {
+                    Succeeded = false,
+                    Message = "Firma bilgileri güncellenirken hata oluştu."
+                };
+            }
+
+            return new SucceededMessageResponse
+            {
+                Succeeded = true,
+                Message = "Firma bilgileri başarıyla güncellendi."
+            };
+
+        }
     }
 }
