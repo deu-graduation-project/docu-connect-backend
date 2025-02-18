@@ -476,8 +476,8 @@ namespace FotokopiRandevuAPI.Persistence.Services
                     Name = u.Customer?.Name,
                     Surname = u.Customer?.Surname,
                     Email = u.Customer?.Email,
-                    ProfilePhoto = profilePhoto
-                });
+                    ProfilePhoto = profilePhoto != null ? Convert.ToBase64String(profilePhoto) : null
+                }); 
             }
 
             return new()
@@ -513,8 +513,8 @@ namespace FotokopiRandevuAPI.Persistence.Services
                 Extra = a.Address.Extra,
                 StarRating = a.StarRating,
                 ProfilePhoto = !string.IsNullOrEmpty(a.ProfilePhotoPath) && File.Exists(Path.Combine(_webHostEnvironment.WebRootPath, a.ProfilePhotoPath.TrimStart('/')))
-                        ? File.ReadAllBytes(Path.Combine(_webHostEnvironment.WebRootPath, a.ProfilePhotoPath.TrimStart('/')))
-                        : null
+    ? Convert.ToBase64String(File.ReadAllBytes(Path.Combine(_webHostEnvironment.WebRootPath, a.ProfilePhotoPath.TrimStart('/'))))
+    : null 
             }).ToListAsync();
 
             return new()
@@ -549,8 +549,8 @@ namespace FotokopiRandevuAPI.Persistence.Services
                     StarRating = c.StarRating != 0 ? c.StarRating.ToString() : "Bu firma daha önce bir değerlendirilmedi."
                 }),
                 ProfilePhoto = !string.IsNullOrEmpty(u.ProfilePhotoPath) && File.Exists(Path.Combine(_webHostEnvironment.WebRootPath, u.ProfilePhotoPath.TrimStart('/')))
-                ? File.ReadAllBytes(Path.Combine(_webHostEnvironment.WebRootPath, u.ProfilePhotoPath.TrimStart('/')))
-                : null
+    ? Convert.ToBase64String(File.ReadAllBytes(Path.Combine(_webHostEnvironment.WebRootPath, u.ProfilePhotoPath.TrimStart('/'))))
+    : null
             }).FirstOrDefaultAsync();
             if (agency == null)
                 throw new Exception("Böyle bir onaylı firma bulunamadı.");
