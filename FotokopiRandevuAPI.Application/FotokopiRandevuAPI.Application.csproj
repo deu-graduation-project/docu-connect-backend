@@ -19,4 +19,8 @@
     <ProjectReference Include="..\FotokopiRandevuAPI.Domain\FotokopiRandevuAPI.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Features\Commands\User\NewFolder1\" />
+  </ItemGroup>
+
 </Project>

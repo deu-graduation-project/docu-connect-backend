@@ -10,6 +10,7 @@ using FotokopiRandevuAPI.Application.Features.Commands.User.UpdateUserPassword;
 using FotokopiRandevuAPI.Application.Features.Queries.User.GetAgencies;
 using FotokopiRandevuAPI.Application.Features.Queries.User.GetBeAnAgencyRequests;
 using FotokopiRandevuAPI.Application.Features.Queries.User.GetSingleAgency;
+using FotokopiRandevuAPI.Application.Features.Queries.User.NewFolder;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -105,6 +106,16 @@ namespace FotokopiRandevuAPI.API.Controllers
         public async Task<IActionResult> UpdateAgencyInfos([FromForm]UpdateAgencyInfosCommandRequest updateAgencyInfosCommandRequest)
         {
             UpdateAgencyInfosCommandResponse response = await _mediator.Send(updateAgencyInfosCommandRequest);
+            return Ok(response);
+        }
+
+        [HttpGet("[action]")]
+        [Authorize(AuthenticationSchemes = "Admin")]
+        [Authorize(Roles = "admin,customer")]
+
+        public async Task<IActionResult> GetUserById([FromQuery] GetUserByIdQueryRequest GetUserByIdQueryRequest)
+        {
+            GetUserByIdQueryResponse response = await _mediator.Send(GetUserByIdQueryRequest);
             return Ok(response);
         }
     }

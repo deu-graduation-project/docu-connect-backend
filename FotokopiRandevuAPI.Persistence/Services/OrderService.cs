@@ -448,7 +448,7 @@ namespace FotokopiRandevuAPI.Persistence.Services
                     };
                 if (createComment.StarRating >=1)
                 {
-                    if (order.OrderState == OrderState.Finished)
+                    if (order.OrderState == OrderState.Completed)
                     {
                         await _commentWriteRepository.AddAsync(new()
                         {

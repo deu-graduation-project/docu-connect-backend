@@ -4,9 +4,12 @@ using FotokopiRandevuAPI.Application.Abstraction.Hubs;
 using FotokopiRandevuAPI.Application.Abstraction.Services;
 using FotokopiRandevuAPI.Application.DTOs;
 using FotokopiRandevuAPI.Application.DTOs.User;
+using FotokopiRandevuAPI.Application.Repositories.CommentRepositories;
+using FotokopiRandevuAPI.Application.Repositories.OrderRepositories;
 using FotokopiRandevuAPI.Application.Repositories.UserRepositories.AgencyRepositories;
 using FotokopiRandevuAPI.Domain.Entities.Identity;
 using FotokopiRandevuAPI.Domain.Entities.Identity.Extra;
+using FotokopiRandevuAPI.Domain.Entities.Products;
 using FotokopiRandevuAPI.Persistence.Contexts;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -32,7 +35,9 @@ namespace FotokopiRandevuAPI.Persistence.Services
         readonly fotokopiRandevuAPIDbContext _dbContext;
         private readonly IWebHostEnvironment _webHostEnvironment;
         readonly IUserHubService _userHubService;
-        public UserService(UserManager<AppUser> userManager, IHttpContextAccessor httpContextAccessor, IBeAnAgencyRequestWriteRepository beAnAgencyRequestWriteRepository, IBeAnAgencyRequestReadRepository beAnAgencyRequestReadRepository, fotokopiRandevuAPIDbContext dbContext, IUserHubService userHubService, IWebHostEnvironment webHostEnvironment)
+        readonly ICommentReadRepository _commentReadRepository;
+        readonly IOrderReadRepository _orderReadRepository;
+        public UserService(UserManager<AppUser> userManager, IHttpContextAccessor httpContextAccessor, IBeAnAgencyRequestWriteRepository beAnAgencyRequestWriteRepository, IBeAnAgencyRequestReadRepository beAnAgencyRequestReadRepository, fotokopiRandevuAPIDbContext dbContext, IUserHubService userHubService, IWebHostEnvironment webHostEnvironment, IOrderReadRepository orderReadRepository, ICommentReadRepository commentReadRepository)
         {
             _userManager = userManager;
             _httpContextAccessor = httpContextAccessor;
@@ -41,6 +46,8 @@ namespace FotokopiRandevuAPI.Persistence.Services
             _dbContext = dbContext;
             _userHubService = userHubService;
             _webHostEnvironment = webHostEnvironment;
+            _orderReadRepository = orderReadRepository;
+            _commentReadRepository = commentReadRepository;
         }
 
         private async Task<AppUser> ContextUser()
@@ -625,6 +632,98 @@ namespace FotokopiRandevuAPI.Persistence.Services
                 Message = "Firma bilgileri başarıyla güncellendi."
             };
 
+        }
+
+        public async Task<UserById> GetUserById(string? userId)
+        {
+            var user = await ContextUser();
+            var userRoles = await _userManager.GetRolesAsync(user);
+            if (userRoles.Contains("admin"))
+            {
+                var searchedUser = await _userManager.FindByIdAsync(userId);
+                if (searchedUser == null)
+                    throw new Exception("Kullanıcı bulunamadı.");
+                var userComments = await _commentReadRepository.GetWhere(u => u.Order.Customer.Id == searchedUser.Id).Select(u => new
+                {
+                    CommentText = u.CommentText,
+                    StarRating = u.StarRating
+                }).ToListAsync();
+                var userOrders = await _orderReadRepository.GetWhere(u => u.Customer.Id == searchedUser.Id).Include(u => u.AgencyProduct).ThenInclude(u => u.Product).Select(u => new
+                {
+                    OrderCode = u.OrderCode,
+                    OrderState = u.OrderState.ToString(),
+                    TotalPrice = u.TotalPrice,
+                    KopyaSayısı = u.KopyaSayısı,
+                    SayfaSayısı = u.SayfaSayısı,
+                    AgencyName = u.Agency.AgencyName,
+                    CustomerName = u.Customer.UserName,
+                    Product = new
+                    {
+                        Price = u.AgencyProduct.Price,
+                        PrintType = u.AgencyProduct.Product.PrintType,
+                        PaperType = u.AgencyProduct.Product.PaperType,
+                        ColorOption = u.AgencyProduct.Product.ColorOption,
+                    },
+                    CopyFiles = u.CopyFiles.Select(c => new
+                    {
+                        FileName = c.FileName,
+                        FilePath = c.FilePath
+                    })
+                }).ToListAsync();
+                return new UserById()
+                {
+                    UserId = searchedUser.Id,
+                    UserName = searchedUser.UserName,
+                    Name = searchedUser.Name,
+                    Surname = searchedUser.Surname,
+                    Email = searchedUser.Email,
+                    EmailConfirmed = searchedUser.EmailConfirmed,
+                    UserComments = userComments,
+                    UserOrders = userOrders
+                };
+            }
+            else if (userRoles.Contains("customer"))
+            {
+                var userComments = await _commentReadRepository.GetWhere(u => u.Order.Customer.Id == user.Id).Select(u => new
+                {
+                    CommentText = u.CommentText,
+                    StarRating = u.StarRating
+                }).ToListAsync();
+                var userOrders = await _orderReadRepository.GetWhere(u => u.Customer.Id == user.Id).Include(u => u.AgencyProduct).ThenInclude(u => u.Product).Select(u => new
+                {
+                    OrderCode = u.OrderCode,
+                    OrderState = u.OrderState.ToString(),
+                    TotalPrice = u.TotalPrice,
+                    KopyaSayısı = u.KopyaSayısı,
+                    SayfaSayısı = u.SayfaSayısı,
+                    AgencyName = u.Agency.AgencyName,
+                    CustomerName = u.Customer.UserName,
+                    Product = new
+                    {
+                        Price = u.AgencyProduct.Price,
+                        PrintType = u.AgencyProduct.Product.PrintType,
+                        PaperType = u.AgencyProduct.Product.PaperType,
+                        ColorOption = u.AgencyProduct.Product.ColorOption,
+                    },
+                    CopyFiles = u.CopyFiles.Select(c => new
+                    {
+                        FileName = c.FileName,
+                        FilePath = c.FilePath
+                    })
+                }).ToListAsync();
+                return new UserById()
+                {
+                    UserId = user.Id,
+                    UserName = user.UserName,
+                    Name = user.Name,
+                    Surname = user.Surname,
+                    Email = user.Email,
+                    EmailConfirmed = user.EmailConfirmed,
+                    UserComments = userComments,
+                    UserOrders = userOrders
+                };
+            }
+            else throw new Exception("Bu istek için gerekli role sahip değilsiniz.");
         }
     }
 }
