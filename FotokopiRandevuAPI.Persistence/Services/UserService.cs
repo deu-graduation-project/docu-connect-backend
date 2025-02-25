@@ -410,7 +410,7 @@ namespace FotokopiRandevuAPI.Persistence.Services
 
         public async Task<GetBeAnAgencyRequestsPaginated> GetBeAnAgencyRequests(int page, int size, string? orderby, string? requestId, string? usernameOrEmail, string? state)
         {
-            var query = _beAnAgencyRequestReadRepository.GetAll(false).AsQueryable();
+            var query = _beAnAgencyRequestReadRepository.GetAll(false).Include(u=>u.Customer).AsQueryable();
             if (!string.IsNullOrEmpty(state))
             {
                 if (Enum.TryParse<BeAnAgencyRequestState>(state, true, out var requestState))
