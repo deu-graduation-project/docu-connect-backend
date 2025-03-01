@@ -69,9 +69,10 @@ namespace FotokopiRandevuAPI.Infrastructure.Services
             var roles = await _userManager.GetRolesAsync(user);
             var claims = new List<Claim>()
             {
-                new Claim(ClaimTypes.Name,user.UserName),
+                new Claim(ClaimTypes.NameIdentifier,user.Id),
+                new Claim(ClaimTypes.GivenName,user.UserName),
+                new Claim(ClaimTypes.Name,user.Name),
                 new Claim(ClaimTypes.Surname,user.Surname),
-                new Claim(ClaimTypes.NameIdentifier,user.Name),
                 new Claim(ClaimTypes.Email,user.Email),
             };
             foreach (var role in roles)
