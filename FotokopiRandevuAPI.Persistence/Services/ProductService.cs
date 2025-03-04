@@ -13,6 +13,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -41,7 +42,7 @@ namespace FotokopiRandevuAPI.Persistence.Services
 
         private async Task<AppUser> ContextUser()
         {
-            var username = _httpContextAccessor?.HttpContext?.User?.Identity?.Name;
+            var username = _httpContextAccessor?.HttpContext?.User?.Claims.FirstOrDefault(c => c.Type == ClaimTypes.GivenName)?.Value;
             if (!string.IsNullOrEmpty(username))
             {
                 AppUser? user = _userManager.Users.FirstOrDefault(u => u.UserName == username);
