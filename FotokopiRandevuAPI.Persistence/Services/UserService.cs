@@ -691,8 +691,8 @@ namespace FotokopiRandevuAPI.Persistence.Services
             {
                 var userComments = await _commentReadRepository.GetWhere(u => u.Order.Customer.Id == user.Id).Include(u=>u.Customer).Select(u => new
                 {
-                    UserName = c.Customer.UserName,
-                    CreatedDate = c.CreatedDate,
+                    UserName = u.Customer.UserName,
+                    CreatedDate = u.CreatedDate,
                     CommentText = u.CommentText,
                     StarRating = u.StarRating
                 }).ToListAsync();
