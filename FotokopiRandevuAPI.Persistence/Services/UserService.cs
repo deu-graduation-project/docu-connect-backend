@@ -553,6 +553,8 @@ namespace FotokopiRandevuAPI.Persistence.Services
                 }),
                 Comments = u.Comments.Select(c => new
                 {
+                    UserName=c.Customer.UserName,
+                    CreatedDate=c.CreatedDate,
                     CommentText = c.CommentText,
                     StarRating = c.StarRating != 0 ? c.StarRating.ToString() : "Bu firma daha önce bir değerlendirilmedi."
                 }),
@@ -644,8 +646,10 @@ namespace FotokopiRandevuAPI.Persistence.Services
                 var searchedUser = await _userManager.FindByIdAsync(userId);
                 if (searchedUser == null)
                     throw new Exception("Kullanıcı bulunamadı.");
-                var userComments = await _commentReadRepository.GetWhere(u => u.Order.Customer.Id == searchedUser.Id).Select(u => new
+                var userComments = await _commentReadRepository.GetWhere(u => u.Order.Customer.Id == searchedUser.Id).Include(u=>u.Customer).Select(u => new
                 {
+                    UserName=u.Customer.UserName,
+                    CreatedDate=u.CreatedDate,
                     CommentText = u.CommentText,
                     StarRating = u.StarRating
                 }).ToListAsync();
@@ -685,8 +689,10 @@ namespace FotokopiRandevuAPI.Persistence.Services
             }
             else if (userRoles.Contains("customer"))
             {
-                var userComments = await _commentReadRepository.GetWhere(u => u.Order.Customer.Id == user.Id).Select(u => new
+                var userComments = await _commentReadRepository.GetWhere(u => u.Order.Customer.Id == user.Id).Include(u=>u.Customer).Select(u => new
                 {
+                    UserName = c.Customer.UserName,
+                    CreatedDate = c.CreatedDate,
                     CommentText = u.CommentText,
                     StarRating = u.StarRating
                 }).ToListAsync();

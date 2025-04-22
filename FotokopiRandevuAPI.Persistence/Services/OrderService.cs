@@ -674,7 +674,7 @@ namespace FotokopiRandevuAPI.Persistence.Services
                             Period = $"{g.Key.Month:D2}.{g.Key.Year}",
                             TotalPrice = g.Sum(o => o.TotalPrice),
                             TotalPageCount = g.Sum(o => o.SayfaSayısı),
-                            TotalCompletedOrder = g.Count(o => o.OrderState == OrderState.Finished)
+                            TotalCompletedOrder = g.Count(o => o.OrderState == OrderState.Completed)
                         }),
                     "year" => agencyOrders
                         .GroupBy(o => o.CreatedDate.Year)
@@ -683,7 +683,7 @@ namespace FotokopiRandevuAPI.Persistence.Services
                             Period = $"{g.Key}",
                             TotalPrice = g.Sum(o => o.TotalPrice),
                             TotalPageCount = g.Sum(o => o.SayfaSayısı),
-                            TotalCompletedOrder = g.Count(o => o.OrderState == OrderState.Finished)
+                            TotalCompletedOrder = g.Count(o => o.OrderState == OrderState.Completed)
                         }),
                     _ => agencyOrders
                         .GroupBy(o => o.CreatedDate.Date)
@@ -692,7 +692,7 @@ namespace FotokopiRandevuAPI.Persistence.Services
                             Period = $"{g.Key:dd.MM.yyyy}",
                             TotalPrice = g.Sum(o => o.TotalPrice),
                             TotalPageCount = g.Sum(o => o.SayfaSayısı),
-                            TotalCompletedOrder = g.Count(o => o.OrderState == OrderState.Finished)
+                            TotalCompletedOrder = g.Count(o => o.OrderState == OrderState.Completed)
                         })
                 };
                 return new()
