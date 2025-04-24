@@ -506,9 +506,22 @@ namespace FotokopiRandevuAPI.Persistence.Services
                 query = query.Where(u => u.Address.District.ToLower() == district.ToLower());
             if (!string.IsNullOrEmpty(orderBy))
             {
-                if (orderBy.Equals("starRating", StringComparison.OrdinalIgnoreCase))
+                orderBy = orderBy.ToLower();
+                if (orderBy.Equals("stardesc", StringComparison.OrdinalIgnoreCase))
                 {
                     query = query.OrderByDescending(u => u.StarRating);
+                }
+                else if (orderBy.Equals("starasc", StringComparison.OrdinalIgnoreCase))
+                {
+                    query = query.OrderBy(u => u.StarRating);
+                }
+                else if (orderBy.Equals("atoz", StringComparison.OrdinalIgnoreCase))
+                {
+                    query = query.OrderBy(u => u.AgencyName);
+                }
+                else if (orderBy.Equals("ztoa", StringComparison.OrdinalIgnoreCase))
+                {
+                    query = query.OrderByDescending(u => u.AgencyName);
                 }
             }
             var totalCount = await query.CountAsync();
