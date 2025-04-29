@@ -26,7 +26,7 @@ namespace FotokopiRandevuAPI.Application.Abstraction.Services
         Task<BeAnAgencyResponse> BeAnAgencyConfirmAsync(BeAnAgencyConfirm beAnAgency);
 
         Task<GetBeAnAgencyRequestsPaginated> GetBeAnAgencyRequests(int page, int size, string? orderby,string? requestId, string? search, string? state);
-        Task<GetAgenciesPaginated> GetAgencies(int page, int size,string? agencyName,string? province,string? district, string? orderBy);
+        Task<GetAgenciesPaginated> GetAgencies(int page, int size,string? agencyName,string? province,string? district, string? orderBy,string? paperType,string? colorOption,string? printType);
         Task<GetSingleAgencyResponse> GetSingleAgency(string agencyId);
 
         Task<SucceededMessageResponse> UpdateAgencyInfos(string? name, string? surname,string? agencyName,string? province, string? district,string? extra, string? agencyBio,IFormFile? ProfilePhoto);

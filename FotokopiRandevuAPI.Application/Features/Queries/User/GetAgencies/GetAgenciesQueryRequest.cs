@@ -16,6 +16,9 @@ namespace FotokopiRandevuAPI.Application.Features.Queries.User.GetAgencies
         public string? Province { get; set; }
         public string? District { get; set; }
         public string? OrderBy { get; set; }
+        public string? PaperType { get; set; }
+        public string? ColorOption{ get; set; }
+        public string? PrintType { get; set; }
 
     }
 }

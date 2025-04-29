@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
+using Microsoft.IdentityModel.Tokens;
 using Org.BouncyCastle.Asn1.Ocsp;
 using System;
 using System.Collections.Generic;
@@ -495,9 +496,9 @@ namespace FotokopiRandevuAPI.Persistence.Services
             };
         }
 
-        public async Task<GetAgenciesPaginated> GetAgencies(int page, int size, string? agencyName, string? province, string? district, string? orderBy)
+        public async Task<GetAgenciesPaginated> GetAgencies(int page, int size, string? agencyName, string? province, string? district, string? orderBy, string? paperType, string? colorOption, string? printType)
         {
-            var query = _userManager.Users.OfType<Agency>().Where(u => u.IsConfirmedAgency == true).AsQueryable();
+            var query = _userManager.Users.OfType<Agency>().Where(u => u.IsConfirmedAgency == true).Include(u=>u.AgencyProducts).ThenInclude(u=>u.Product).AsQueryable();
             if (!string.IsNullOrEmpty(agencyName))
                 query = query.Where(u => u.AgencyName.Contains(agencyName));
             if (!string.IsNullOrEmpty(province))
@@ -523,6 +524,18 @@ namespace FotokopiRandevuAPI.Persistence.Services
                 {
                     query = query.OrderByDescending(u => u.AgencyName);
                 }
+            }
+            if (!string.IsNullOrEmpty(paperType))
+            {
+                query = query.Where(u => u.AgencyProducts.Any(p => p.Product.PaperType.ToLower() == paperType.ToLower()));
+            }
+            if (!string.IsNullOrEmpty(printType))
+            {
+                query = query.Where(u => u.AgencyProducts.Any(p => p.Product.PrintType.ToString().ToLower() == printType.ToLower()));
+            }
+            if (!string.IsNullOrEmpty(colorOption))
+            {
+                query = query.Where(u => u.AgencyProducts.Any(p => p.Product.ColorOption.ToString().ToLower() == colorOption.ToLower()));
             }
             var totalCount = await query.CountAsync();
             var agencies = await query.Skip((page - 1) * size).Take(size).Select(a => new

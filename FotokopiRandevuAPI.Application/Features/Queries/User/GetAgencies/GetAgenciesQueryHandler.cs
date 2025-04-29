@@ -19,7 +19,7 @@ namespace FotokopiRandevuAPI.Application.Features.Queries.User.GetAgencies
 
         public async Task<GetAgenciesQueryResponse> Handle(GetAgenciesQueryRequest request, CancellationToken cancellationToken)
         {
-            var response=await _userService.GetAgencies(request.Page, request.Size, request.AgencyName, request.Province, request.District,request.OrderBy);
+            var response=await _userService.GetAgencies(request.Page, request.Size, request.AgencyName, request.Province, request.District,request.OrderBy,request.PaperType,request.ColorOption,request.PrintType);
             return new()
             {
                 TotalCount = response.TotalCount,
