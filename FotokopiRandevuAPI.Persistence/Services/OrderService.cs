@@ -703,5 +703,135 @@ namespace FotokopiRandevuAPI.Persistence.Services
             else
                 throw new Exception("Bu firmanın bir siparişi bulunmamaktadır.");
         }
+
+        // New method to handle order creation from webhook after successful payment
+        public async Task<CreateOrderResponse> CreateOrderFromWebhookAsync(CreateOrderFromWebhookDto createOrderDto)
+        {
+            // 1. Retrieve Entities
+            var agency = await _userManager.FindByIdAsync(createOrderDto.AgencyId) as Agency;
+            var customer = await _userManager.FindByIdAsync(createOrderDto.CustomerId) as Customer; // Assuming Customer inherits from AppUser
+            var agencyProduct = await _agencyProductReadRepository.GetByIdAsync(createOrderDto.AgencyProductId);
+
+            if (agency == null)
+                return new() { Succeeded = false, Message = "Webhook: Firma bulunamadı." };
+            if (customer == null)
+                return new() { Succeeded = false, Message = "Webhook: Müşteri bulunamadı." };
+            if (agencyProduct == null)
+                return new() { Succeeded = false, Message = "Webhook: Ürün bulunamadı." };
+
+            // 2. Prepare Paths
+            string tempDirectoryPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "temp_files", createOrderDto.TempDirectoryId);
+            string finalFilesPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Files");
+
+            if (!Directory.Exists(finalFilesPath))
+                Directory.CreateDirectory(finalFilesPath);
+
+            if (!Directory.Exists(tempDirectoryPath))
+            {
+                // This shouldn't happen if CheckoutController worked, but handle it.
+                return new() { Succeeded = false, Message = "Webhook: Geçici dosya dizini bulunamadı." };
+            }
+
+            // 3. Process Files (Move from Temp to Final)
+            var orderId = Guid.NewGuid();
+            List<CopyFile> copyFiles = new List<CopyFile>();
+
+            try
+            {
+                foreach (var fileInfo in createOrderDto.FileInfos)
+                {
+                    string tempFilePath = Path.Combine(tempDirectoryPath, fileInfo.TempName);
+                    if (!System.IO.File.Exists(tempFilePath))
+                    {
+                        // Log this issue, maybe skip file or fail order? For now, fail.
+                        // Consider cleaning up already moved files if failing here.
+                        Directory.Delete(tempDirectoryPath, true); // Attempt cleanup
+                        return new() { Succeeded = false, Message = $"Webhook: Geçici dosya bulunamadı: {fileInfo.TempName}" };
+                    }
+
+                    // Use original extension, SeoHelper for name, and pre-generated code
+                    string originalExtension = Path.GetExtension(fileInfo.TempName); // Get extension from temp name
+                    string finalFileName = SeoHelper(Path.GetFileNameWithoutExtension(fileInfo.OriginalName)) + "-" + fileInfo.FileCode + originalExtension;
+                    string finalFilePath = Path.Combine(finalFilesPath, finalFileName);
+
+                    // Move the file
+                    System.IO.File.Move(tempFilePath, finalFilePath);
+
+                    copyFiles.Add(new CopyFile
+                    {
+                        FilePath = finalFilePath, // Store the final path
+                        FileName = finalFileName,
+                        OrderId = orderId,
+                        FileCode = fileInfo.FileCode,
+                        // PageCount is already known via createOrderDto.ToplamSayfaSayisi for the whole order
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log the exception
+                // Attempt to clean up the temporary directory
+                try { Directory.Delete(tempDirectoryPath, true); } catch { /* Ignore cleanup error */ }
+                return new() { Succeeded = false, Message = $"Webhook: Dosya taşıma hatası: {ex.Message}" };
+            }
+
+
+            // 4. Create Order Entity
+            var orderCode = await GenerateOrderCode();
+            var order = new Order
+            {
+                Id = orderId, // Use the generated Guid
+                Agency = agency,
+                Customer = customer,
+                OrderCode = orderCode,
+                KopyaSayısı = createOrderDto.KopyaSayisi,
+                TotalPrice = createOrderDto.TotalPrice, // Use price from metadata
+                OrderState = OrderState.Pending, // Initial state after payment
+                AgencyProduct = agencyProduct,
+                SayfaSayısı = createOrderDto.ToplamSayfaSayisi, // Use total page count from metadata
+                CopyFiles = copyFiles // Add the processed files
+            };
+
+            // 5. Save Order
+            var response = await _orderWriteRepository.AddAsync(order);
+            if (response)
+            {
+                await _orderWriteRepository.SaveAsync();
+
+                // 6. Post-Creation Actions (Notifications, Cleanup)
+                try
+                {
+                    // Send notifications
+                    await _mailService.SendOrderCreatedForAgencyMailAsync(agency.Email, customer.UserName, orderCode, agency.AgencyName, order.KopyaSayısı, order.SayfaSayısı, order.TotalPrice);
+                    await _mailService.SendOrderCreatedForUserMailAsync(customer.Email, customer.UserName, orderCode, agency.AgencyName, order.KopyaSayısı, order.SayfaSayısı, order.TotalPrice);
+                    await _orderHubService.OrderAddedMessage(agency.Id, customer.Id, "Siparişiniz başarıyla alındı ve firma onayı bekleniyor.");
+
+                    // Delete temporary directory AFTER successful order save and notifications
+                    Directory.Delete(tempDirectoryPath, true); // true for recursive delete
+                }
+                catch (Exception postActionEx)
+                {
+                    // Log this error, but the order is already created.
+                    // Maybe add a flag to the order indicating post-processing issues?
+                    Console.WriteLine($"Webhook Post-Action Error (Order {orderCode}): {postActionEx.Message}");
+                }
+
+                return new()
+                {
+                    Message = "Sipariş başarıyla oluşturuldu.",
+                    Succeeded = true,
+                };
+            }
+            else
+            {
+                // If AddAsync fails, attempt cleanup
+                try { Directory.Delete(tempDirectoryPath, true); } catch { /* Ignore cleanup error */ }
+                return new()
+                {
+                    Succeeded = false,
+                    Message = "Webhook: Sipariş veritabanına eklenirken hata oluştu."
+                };
+            }
+        }
     }
 }

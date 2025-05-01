@@ -11,6 +11,7 @@ using FotokopiRandevuAPI.Application.Validators.Product;
 using FotokopiRandevuAPI.Infrastructure.Filters;
 using FluentValidation.AspNetCore;
 using DotNetEnv;
+using Stripe;
 
 var builder = WebApplication.CreateBuilder(args);
 var configurationBuilder = new ConfigurationBuilder();
@@ -81,6 +82,7 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddCors(options => options.AddDefaultPolicy(policy =>
     policy.WithOrigins("http://localhost:4200", "https://localhost:4200", "https://localhost:3000", "http://localhost:3000").AllowAnyHeader().AllowAnyMethod().AllowCredentials()
 ));
+StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
