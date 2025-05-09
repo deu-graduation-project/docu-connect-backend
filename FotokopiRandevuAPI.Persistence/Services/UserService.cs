@@ -699,7 +699,8 @@ namespace FotokopiRandevuAPI.Persistence.Services
                     CopyFiles = u.CopyFiles.Select(c => new
                     {
                         FileName = c.FileName,
-                        FilePath = c.FilePath
+                        FilePath = c.FilePath,
+                        FileCode=c.FileCode
                     })
                 }).ToListAsync();
                 return new UserById()
@@ -743,7 +744,8 @@ namespace FotokopiRandevuAPI.Persistence.Services
                     CopyFiles = u.CopyFiles.Select(c => new
                     {
                         FileName = c.FileName,
-                        FilePath = c.FilePath
+                        FilePath = c.FilePath,
+                        FileCode = c.FileCode
                     })
                 }).ToListAsync();
                 return new UserById()
