@@ -195,7 +195,7 @@ namespace FotokopiRandevuAPI.Infrastructure.Services
 
             string filledHtml = htmlTemplate
                 .Replace("{userName}", userName)
-                .Replace("https://localhost:3000", Environment.GetEnvironmentVariable("ClientUrl") + "/update-password/" + userId + "/" + resetToken);
+                .Replace("https://localhost:3000", Environment.GetEnvironmentVariable("ClientUrl") + "/reset-password/" + userId + "/" + resetToken);
             await SendMailAsync(to, "Şifre Yenileme Talebi", filledHtml.ToString());
 
         }
