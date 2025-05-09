@@ -681,6 +681,7 @@ namespace FotokopiRandevuAPI.Persistence.Services
                 }).ToListAsync();
                 var userOrders = await _orderReadRepository.GetWhere(u => u.Customer.Id == searchedUser.Id).Include(u => u.AgencyProduct).ThenInclude(u => u.Product).Select(u => new
                 {
+                    CreatedDate = u.CreatedDate,
                     OrderCode = u.OrderCode,
                     OrderState = u.OrderState.ToString(),
                     TotalPrice = u.TotalPrice,
@@ -724,6 +725,7 @@ namespace FotokopiRandevuAPI.Persistence.Services
                 }).ToListAsync();
                 var userOrders = await _orderReadRepository.GetWhere(u => u.Customer.Id == user.Id).Include(u => u.AgencyProduct).ThenInclude(u => u.Product).Select(u => new
                 {
+                    CreatedDate = u.CreatedDate,
                     OrderCode = u.OrderCode,
                     OrderState = u.OrderState.ToString(),
                     TotalPrice = u.TotalPrice,
