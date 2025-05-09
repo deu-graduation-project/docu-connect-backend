@@ -1,4 +1,5 @@
-﻿using FotokopiRandevuAPI.Application.Features.Commands.Order.CreateOrder;
+﻿using FotokopiRandevuAPI.Application.Features.Commands.Order.CancelOrder;
+using FotokopiRandevuAPI.Application.Features.Commands.Order.CreateOrder;
 using FotokopiRandevuAPI.Application.Features.Commands.Order.UpdateOrder;
 using FotokopiRandevuAPI.Application.Features.Commands.Product.CreateProduct;
 using FotokopiRandevuAPI.Application.Features.Queries.Order.GetAgencyAnalytics;
@@ -58,6 +59,14 @@ namespace FotokopiRandevuAPI.API.Controllers
         public async Task<IActionResult> GetAgencyAnalytics([FromQuery] GetAgencyAnalyticsCommandRequest getAgencyAnalyticsCommandRequest)
         {
             GetAgencyAnalyticsCommandResponse response = await _mediator.Send(getAgencyAnalyticsCommandRequest);
+            return Ok(response);
+        }
+        [HttpDelete("[action]")]
+        [Authorize(AuthenticationSchemes = "Admin")]
+        [Authorize(Roles = "customer,admin")]
+        public async Task<IActionResult> CancelOrder(CancelOrderCommandRequest request)
+        {
+            CancelOrderCommandResponse response = await _mediator.Send(request);
             return Ok(response);
         }
 

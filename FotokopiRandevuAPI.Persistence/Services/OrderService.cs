@@ -1,6 +1,7 @@
 ﻿using Azure;
 using FotokopiRandevuAPI.Application.Abstraction.Hubs;
 using FotokopiRandevuAPI.Application.Abstraction.Services;
+using FotokopiRandevuAPI.Application.DTOs;
 using FotokopiRandevuAPI.Application.DTOs.Comment;
 using FotokopiRandevuAPI.Application.DTOs.Order;
 using FotokopiRandevuAPI.Application.Repositories.CommentRepositories;
@@ -832,6 +833,26 @@ namespace FotokopiRandevuAPI.Persistence.Services
                     Message = "Webhook: Sipariş veritabanına eklenirken hata oluştu."
                 };
             }
+        }
+
+        public async Task<SucceededMessageResponse> CancelOrderAsync(string orderCode)
+        {
+            var user=await ContextUser();
+            var order = await _orderReadRepository.GetWhere(u => u.OrderCode == orderCode && u.Customer.Id == user.Id).FirstOrDefaultAsync();
+            if (order == null)
+            {
+                return new()
+                {
+                    Message = "Sipariş bulunamadı.",
+                    Succeeded = false,
+                };
+            }
+            await _orderWriteRepository.RemoveAsync(order.Id.ToString());
+            return new()
+            {
+                Message = "Sipariş iptal edildi.",
+                Succeeded = true,
+            };
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using FotokopiRandevuAPI.Application.DTOs.Comment;
+﻿using FotokopiRandevuAPI.Application.DTOs;
+using FotokopiRandevuAPI.Application.DTOs.Comment;
 using FotokopiRandevuAPI.Application.DTOs.Order;
 using System;
 using System.Collections.Generic;
@@ -16,5 +17,6 @@ namespace FotokopiRandevuAPI.Application.Abstraction.Services
         Task<UpdateOrderResponse> UpdateOrder(string? orderState,CreateComment? createComment, List<string>? removeCommentIds, string? completedCode);
         Task<GetAgencyAnalyticsResponse> GetAgencyAnalytics(string agencyId, string startDate, string endDate, string groupBy = "day");
         Task<CreateOrderResponse> CreateOrderFromWebhookAsync(CreateOrderFromWebhookDto createOrderDto); // Added for webhook
+        Task<SucceededMessageResponse> CancelOrderAsync(string orderCode); 
     }
 }
