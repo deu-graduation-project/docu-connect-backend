@@ -847,6 +847,14 @@ namespace FotokopiRandevuAPI.Persistence.Services
                     Succeeded = false,
                 };
             }
+            if (order.OrderState != OrderState.Pending)
+            {
+                return new()
+                {
+                    Message = "Siparişi iptal etmek için siparişin bekleme durumunda olması gerekir.",
+                    Succeeded = false,
+                };
+            }
             await _orderWriteRepository.RemoveAsync(order.Id.ToString());
             return new()
             {

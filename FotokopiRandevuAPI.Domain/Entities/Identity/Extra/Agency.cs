@@ -18,5 +18,6 @@ namespace FotokopiRandevuAPI.Domain.Entities.Identity.Extra
         public double StarRating { get; set; } = 0;
         public List<AgencyProduct> AgencyProducts { get; set; }=new List<AgencyProduct>();
         public string? ProfilePhotoPath { get; set; }
+
     }
 }
