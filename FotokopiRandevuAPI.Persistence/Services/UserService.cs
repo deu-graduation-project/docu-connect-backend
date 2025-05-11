@@ -701,7 +701,8 @@ namespace FotokopiRandevuAPI.Persistence.Services
                         FileName = c.FileName,
                         FilePath = c.FilePath,
                         FileCode=c.FileCode
-                    })
+                    }),
+                    UpdatedDate = u.UpdatedDate,
                 }).ToListAsync();
                 return new UserById()
                 {
@@ -746,7 +747,8 @@ namespace FotokopiRandevuAPI.Persistence.Services
                         FileName = c.FileName,
                         FilePath = c.FilePath,
                         FileCode = c.FileCode
-                    })
+                    }),
+                    UpdatedDate = u.UpdatedDate,
                 }).ToListAsync();
                 return new UserById()
                 {

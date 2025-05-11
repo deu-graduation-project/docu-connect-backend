@@ -217,6 +217,7 @@ namespace FotokopiRandevuAPI.Persistence.Services
                 AgencyProduct = agencyProduct,
                 SayfaSayısı=toplamSayfaSayısı,
                 CopyFiles = copyFiles,
+                UpdatedDate=DateTime.UtcNow
             };
 
             var response = await _orderWriteRepository.AddAsync(order);
@@ -310,7 +311,9 @@ namespace FotokopiRandevuAPI.Persistence.Services
                     CopyFile = u.CopyFiles.Select(c => new
                     {
                         FileName=c.FileName,
-                    })
+                        FileCode=c.FileCode,
+                    }),
+                    UpdatedDate =u.UpdatedDate,
                 }).ToListAsync();
             }
             else if (userRoles.Contains("customer"))
@@ -336,7 +339,9 @@ namespace FotokopiRandevuAPI.Persistence.Services
                     CopyFile = u.CopyFiles.Select(c => new
                     {
                         FileName = c.FileName,
-                    })
+                        FileCode=c.FileCode
+                    }),
+                    UpdatedDate = u.UpdatedDate,
                 }).ToListAsync();
             }
             else if (userRoles.Contains("admin"))
@@ -363,7 +368,9 @@ namespace FotokopiRandevuAPI.Persistence.Services
                     CopyFile = u.CopyFiles.Select(c => new
                     {
                         FileName = c.FileName,
-                    })
+                        FileCode = c.FileCode,
+                    }),
+                    UpdatedDate = u.UpdatedDate,
                 }).ToListAsync();
             }
             else
@@ -421,7 +428,7 @@ namespace FotokopiRandevuAPI.Persistence.Services
                             order.CompletedCode = await GenerateOrderCompletedCode();
                         await _mailService.SendOrderUpdatedMailAsync(order.Customer.Email, order.Customer.UserName, order.OrderCode, order.Agency.AgencyName, order.CompletedCode, order.KopyaSayısı, order.SayfaSayısı, order.TotalPrice, state);
                         order.OrderState = state;
-                        
+                        order.UpdatedDate = DateTime.UtcNow;
                         await _orderWriteRepository.SaveAsync();
                         await _orderHubService.OrderUpdatedMessage(order.Agency.Id, order.Customer.Id, $"{order.OrderCode} kodlu sipariş güncellenmiştir.");
                         return new()
@@ -493,6 +500,7 @@ namespace FotokopiRandevuAPI.Persistence.Services
                     if (Enum.TryParse<OrderState>(orderState, true, out var state))
                     {
                         order.OrderState = state;
+                        order.UpdatedDate = DateTime.UtcNow;
                         if (state == OrderState.Finished)
                             order.CompletedCode = await GenerateOrderCompletedCode();
                         await _orderWriteRepository.SaveAsync();
@@ -563,6 +571,7 @@ namespace FotokopiRandevuAPI.Persistence.Services
                        FileCode = c.FileCode,
                        FilePath=c.FilePath
                    }),
+                   UpdatedDate=u.UpdatedDate,
                    CompletedCode = u.CompletedCode
                }).FirstOrDefaultAsync();
             }
@@ -588,7 +597,8 @@ namespace FotokopiRandevuAPI.Persistence.Services
                        FileName = c.FileName,
                        FileCode=c.FileCode
                    }),
-                   CompletedCode = u.CompletedCode
+                   CompletedCode = u.CompletedCode,
+                   UpdatedDate = u.UpdatedDate,
                }).FirstOrDefaultAsync();
             }
             else if (userRoles.Contains("agency"))
@@ -613,6 +623,7 @@ namespace FotokopiRandevuAPI.Persistence.Services
                        FileName = c.FileName,
                        FileCode = c.FileCode
                    }),
+                   UpdatedDate = u.UpdatedDate,
                }).FirstOrDefaultAsync();
             }
             else
