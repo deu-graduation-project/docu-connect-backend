@@ -23,6 +23,7 @@ namespace FotokopiRandevuAPI.Domain.Entities.Order
         public int SayfaSayısı { get; set; }
         public string?  CompletedCode { get; set; }
         public List<CopyFile> CopyFiles { get; set; } = new List<CopyFile>();
+        public DateTime UpdatedDate { get; set; }
     }
     public enum OrderState
     {
