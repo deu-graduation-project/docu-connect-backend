@@ -43,7 +43,10 @@ namespace FotokopiRandevuAPI.Persistence.Services
             var user = await ContextUser();
             if (string.IsNullOrEmpty(fileCode))
                 throw new Exception("File Code boş olmamalıdır.");
-            var file = await _fileReadRepository.GetWhere(u => u.FileCode == fileCode).Include(u => u.Order).FirstOrDefaultAsync();
+            var file = await _fileReadRepository.GetWhere(u => u.FileCode == fileCode)
+                .Include(u => u.Order).ThenInclude(u=>u.Agency)
+                .Include(u => u.Order).ThenInclude(u => u.Customer)
+                .FirstOrDefaultAsync();
             if (file.Order.Agency == user || file.Order.Customer == user )
                 return true;
             else

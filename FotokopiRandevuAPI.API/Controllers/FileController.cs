@@ -20,7 +20,6 @@ namespace FotokopiRandevuAPI.API.Controllers
 
         [HttpGet("[action]")]
         [Authorize(AuthenticationSchemes = "Admin")]
-
         public async Task<IActionResult> DownloadFile([FromQuery] string fileCode)
         {
             var succeeded=await _fileService.DownloadFileCheck(fileCode);
