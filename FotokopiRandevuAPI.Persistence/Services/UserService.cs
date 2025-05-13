@@ -498,7 +498,8 @@ namespace FotokopiRandevuAPI.Persistence.Services
 
         public async Task<GetAgenciesPaginated> GetAgencies(int page, int size, string? agencyName, string? province, string? district, string? orderBy, string? paperType, string? colorOption, string? printType)
         {
-            var query = _userManager.Users.OfType<Agency>().Where(u => u.IsConfirmedAgency == true).Include(u=>u.AgencyProducts).ThenInclude(u=>u.Product).AsQueryable();
+            var query = _userManager.Users.OfType<Agency>().Where(u => u.IsConfirmedAgency == true)
+                .Include(u=>u.AgencyProducts).ThenInclude(u=>u.Product).AsQueryable();
             if (!string.IsNullOrEmpty(agencyName))
                 query = query.Where(u => u.AgencyName.Contains(agencyName));
             if (!string.IsNullOrEmpty(province))
@@ -525,17 +526,33 @@ namespace FotokopiRandevuAPI.Persistence.Services
                     query = query.OrderByDescending(u => u.AgencyName);
                 }
             }
-            if (!string.IsNullOrEmpty(paperType))
+
+            PrintTypes? parsedPrintType = null;
+            if (!string.IsNullOrEmpty(printType) && Enum.TryParse<PrintTypes>(printType, true, out var pt))
             {
-                query = query.Where(u => u.AgencyProducts.Any(p => p.Product.PaperType.ToLower() == paperType.ToLower()));
+                parsedPrintType = pt;
             }
-            if (!string.IsNullOrEmpty(printType))
+
+            ColorOptions? parsedColorOption = null;
+            if (!string.IsNullOrEmpty(colorOption) && Enum.TryParse<ColorOptions>(colorOption, true, out var co))
             {
-                query = query.Where(u => u.AgencyProducts.Any(p => p.Product.PrintType.ToString().ToLower() == printType.ToLower()));
+                parsedColorOption = co;
             }
-            if (!string.IsNullOrEmpty(colorOption))
+
+            bool paperFilterActive = !string.IsNullOrEmpty(paperType);
+            bool printFilterActive = parsedPrintType.HasValue;
+            bool colorFilterActive = parsedColorOption.HasValue;
+
+            if (paperFilterActive || printFilterActive || colorFilterActive)
             {
-                query = query.Where(u => u.AgencyProducts.Any(p => p.Product.ColorOption.ToString().ToLower() == colorOption.ToLower()));
+                query = query.Where(u => u.AgencyProducts.Any(p =>
+
+                    (!paperFilterActive || (p.Product.PaperType != null && p.Product.PaperType.ToLower() == paperType.ToLower()))
+                    &&
+                    (!printFilterActive || p.Product.PrintType == parsedPrintType.Value)
+                     &&
+                    (!colorFilterActive || p.Product.ColorOption == parsedColorOption.Value)
+               ));
             }
             var totalCount = await query.CountAsync();
             var agencies = await query.Skip((page - 1) * size).Take(size).Select(a => new
