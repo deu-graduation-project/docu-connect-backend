@@ -706,6 +706,7 @@ namespace FotokopiRandevuAPI.Persistence.Services
                     SayfaSayısı = u.SayfaSayısı,
                     AgencyName = u.Agency.AgencyName,
                     CustomerName = u.Customer.UserName,
+                    CompletedCode = u.CompletedCode,
                     Product = new
                     {
                         Price = u.AgencyProduct.Price,
@@ -751,6 +752,7 @@ namespace FotokopiRandevuAPI.Persistence.Services
                     KopyaSayısı = u.KopyaSayısı,
                     SayfaSayısı = u.SayfaSayısı,
                     AgencyName = u.Agency.AgencyName,
+                    CompletedCode = u.CompletedCode,
                     CustomerName = u.Customer.UserName,
                     Product = new
                     {
