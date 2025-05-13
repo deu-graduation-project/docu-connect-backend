@@ -783,5 +783,13 @@ namespace FotokopiRandevuAPI.Persistence.Services
             }
             else throw new Exception("Bu istek için gerekli role sahip değilsiniz.");
         }
+
+        public async Task<bool> AnyPendingBeAnAgencyRequest()
+        {
+            var requestingUser= await ContextUser();
+            return await _beAnAgencyRequestReadRepository
+                .GetWhere(u => u.Customer.Id == requestingUser.Id && u.State==BeAnAgencyRequestState.Pending).Include(u=>u.Customer)
+                .AnyAsync();
+        }
     }
 }

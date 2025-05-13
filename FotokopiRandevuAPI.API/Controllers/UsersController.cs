@@ -7,6 +7,7 @@ using FotokopiRandevuAPI.Application.Features.Commands.User.CreateUser;
 using FotokopiRandevuAPI.Application.Features.Commands.User.UpdateAgencyInfos;
 using FotokopiRandevuAPI.Application.Features.Commands.User.UpdatePassword;
 using FotokopiRandevuAPI.Application.Features.Commands.User.UpdateUserPassword;
+using FotokopiRandevuAPI.Application.Features.Queries.User.AnyPendingBeAnAgencyRequest;
 using FotokopiRandevuAPI.Application.Features.Queries.User.GetAgencies;
 using FotokopiRandevuAPI.Application.Features.Queries.User.GetBeAnAgencyRequests;
 using FotokopiRandevuAPI.Application.Features.Queries.User.GetSingleAgency;
@@ -118,5 +119,13 @@ namespace FotokopiRandevuAPI.API.Controllers
             GetUserByIdQueryResponse response = await _mediator.Send(GetUserByIdQueryRequest);
             return Ok(response);
         }
+        [HttpGet("[action]")]
+        [Authorize(AuthenticationSchemes = "Admin")]
+        public async Task<IActionResult> AnyPendingBeAnAgencyRequest([FromQuery] AnyPendingBeAnAgencyRequestQueryRequest request)
+        {
+            AnyPendingBeAnAgencyRequestQueryResponse response = await _mediator.Send(request);
+            return Ok(response);
+        }
+
     }
 }

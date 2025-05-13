@@ -32,5 +32,6 @@ namespace FotokopiRandevuAPI.Application.Abstraction.Services
         Task<SucceededMessageResponse> UpdateAgencyInfos(string? name, string? surname,string? agencyName,string? province, string? district,string? extra, string? agencyBio,IFormFile? ProfilePhoto);
         Task UpdateStarRating(string agencyId);
         Task<UserById> GetUserById(string? userId);
+        Task<bool> AnyPendingBeAnAgencyRequest();
     }
 }
