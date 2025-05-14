@@ -19,6 +19,7 @@ using iText.StyledXmlParser.Jsoup.Nodes;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Org.BouncyCastle.Asn1.X509;
 using System;
 using System.Collections.Generic;
 using System.Drawing.Drawing2D;
@@ -383,9 +384,9 @@ namespace FotokopiRandevuAPI.Persistence.Services
             };
         }
 
-        public async Task<UpdateOrderResponse> UpdateOrder(string? orderState, CreateComment? createComment,List<string>? removeCommentIds,string? completedCode)
+        public async Task<UpdateOrderResponse> UpdateOrder(string? orderState,List<string>? removeCommentIds,string? completedCode,string orderCode)
         {
-            var order = await _orderReadRepository.GetWhere(u => u.OrderCode == createComment.OrderCode)
+            var order = await _orderReadRepository.GetWhere(u => u.OrderCode == orderCode)
                 .Include(u => u.Agency).Include(u => u.Customer).Include(u=>u.Comment).FirstOrDefaultAsync();
             if (order == null)
             {
@@ -447,52 +448,7 @@ namespace FotokopiRandevuAPI.Persistence.Services
                     }
                 }
             }
-            else if (userRoles.Contains("customer"))
-            {
-                if (order.Customer != user)
-                    return new()
-                    {
-                        Succeeded = false,
-                        Message = "Bu sipariş size ait değil."
-                    };
-                if (createComment.StarRating >=1)
-                {
-                    if (order.OrderState == OrderState.Completed)
-                    {
-                        await _commentWriteRepository.AddAsync(new()
-                        {
-                            StarRating = createComment.StarRating,
-                            CommentText = createComment.CommentText,
-                            Agency = order.Agency,
-                            Customer = order.Customer,
-                            Order = order,
-                            OrderId = order.Id,
-                        });
-                        await _commentWriteRepository.SaveAsync();
-                        await _userService.UpdateStarRating(order.Agency.Id.ToString());
-                        await _orderHubService.OrderUpdatedMessage(order.Agency.Id, order.Customer.Id, $"{order.OrderCode} kodlu sipariş güncellenmiştir.");
-                        return new()
-                        {
-                            Succeeded = true,
-                            Message = "Sipariş değerlendirmesi başarıyla yapılmıştır."
-                        };
-                    }
-                    else
-                    {
-                        return new()
-                        {
-                            Succeeded = false,
-                            Message = "Siparişi değerlendirebilmek için sipariş durumunun bitmiş olması gerekmektedir."
-                        };
-                    }
-                }
 
-                return new()
-                {
-                    Succeeded = false,
-                    Message = "Yıldız değerlendirmesi 0dan büyük olmalıdır."
-                };
-            }
             else if (userRoles.Contains("admin"))
             {
                 if (!string.IsNullOrEmpty(orderState))
@@ -867,10 +823,60 @@ namespace FotokopiRandevuAPI.Persistence.Services
                 };
             }
             await _orderWriteRepository.RemoveAsync(order.Id.ToString());
+            await _orderWriteRepository.SaveAsync();
             return new()
             {
                 Message = "Sipariş iptal edildi.",
                 Succeeded = true,
+            };
+        }
+
+        public async Task<SucceededMessageResponse> CreateComment(CreateComment? createComment)
+        {
+            var user= await ContextUser();
+            var order = await _orderReadRepository.GetWhere(u => u.OrderCode == createComment.OrderCode)
+                .Include(u => u.Agency).Include(u => u.Customer).Include(u => u.Comment).FirstOrDefaultAsync();
+            if (order.Customer != user)
+                return new()
+                {
+                    Succeeded = false,
+                    Message = "Bu sipariş size ait değil."
+                };
+            if (createComment.StarRating >= 1)
+            {
+                if (order.OrderState == OrderState.Completed)
+                {
+                    await _commentWriteRepository.AddAsync(new()
+                    {
+                        StarRating = createComment.StarRating,
+                        CommentText = createComment.CommentText,
+                        Agency = order.Agency,
+                        Customer = order.Customer,
+                        Order = order,
+                        OrderId = order.Id,
+                    });
+                    await _commentWriteRepository.SaveAsync();
+                    await _userService.UpdateStarRating(order.Agency.Id.ToString());
+                    await _orderHubService.OrderUpdatedMessage(order.Agency.Id, order.Customer.Id, $"{order.OrderCode} kodlu sipariş güncellenmiştir.");
+                    return new()
+                    {
+                        Succeeded = true,
+                        Message = "Sipariş değerlendirmesi başarıyla yapılmıştır."
+                    };
+                }
+                else
+                {
+                    return new()
+                    {
+                        Succeeded = false,
+                        Message = "Siparişi değerlendirebilmek için sipariş durumunun bitmiş olması gerekmektedir."
+                    };
+                }
+            }
+            return new()
+            {
+                Succeeded = false,
+                Message = "Yıldız değerlendirmesi 0dan büyük olmalıdır."
             };
         }
     }

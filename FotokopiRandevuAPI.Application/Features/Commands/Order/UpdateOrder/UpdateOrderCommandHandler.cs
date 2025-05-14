@@ -19,12 +19,7 @@ namespace FotokopiRandevuAPI.Application.Features.Commands.Order.UpdateOrder
 
         public async Task<UpdateOrderCommandResponse> Handle(UpdateOrderCommandRequest request, CancellationToken cancellationToken)
         {
-            var response=await _orderService.UpdateOrder(request.OrderState, new()
-            {
-                OrderCode=request.OrderCode,
-                CommentText=request.Comment,
-                StarRating=request.StarRating.Value,
-            },request.removeCommentIds,request.CompletedCode);
+            var response=await _orderService.UpdateOrder(request.OrderState,request.removeCommentIds,request.CompletedCode,request.OrderCode);
             return new()
             {
                 Succeeded = response.Succeeded,

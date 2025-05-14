@@ -1,4 +1,5 @@
 ﻿using FotokopiRandevuAPI.Application.Features.Commands.Order.CancelOrder;
+using FotokopiRandevuAPI.Application.Features.Commands.Order.CreateComment;
 using FotokopiRandevuAPI.Application.Features.Commands.Order.CreateOrder;
 using FotokopiRandevuAPI.Application.Features.Commands.Order.UpdateOrder;
 using FotokopiRandevuAPI.Application.Features.Commands.Product.CreateProduct;
@@ -67,6 +68,14 @@ namespace FotokopiRandevuAPI.API.Controllers
         public async Task<IActionResult> CancelOrder(CancelOrderCommandRequest request)
         {
             CancelOrderCommandResponse response = await _mediator.Send(request);
+            return Ok(response);
+        }
+        [HttpDelete("[action]")]
+        [Authorize(AuthenticationSchemes = "Admin")]
+        [Authorize(Roles = "customer")]
+        public async Task<IActionResult> CreateComment(CreateCommentCommandRequest request)
+        {
+            CreateCommentCommandResponse response = await _mediator.Send(request);
             return Ok(response);
         }
 
