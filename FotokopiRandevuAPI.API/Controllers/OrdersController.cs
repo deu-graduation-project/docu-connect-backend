@@ -72,7 +72,7 @@ namespace FotokopiRandevuAPI.API.Controllers
             CancelOrderCommandResponse response = await _mediator.Send(request);
             return Ok(response);
         }
-        [HttpDelete("[action]")]
+        [HttpPost("[action]")]
         [Authorize(AuthenticationSchemes = "Admin")]
         [Authorize(Roles = "customer")]
         public async Task<IActionResult> CreateComment(CreateCommentCommandRequest request)
