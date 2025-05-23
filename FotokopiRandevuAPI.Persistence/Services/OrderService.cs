@@ -931,5 +931,45 @@ namespace FotokopiRandevuAPI.Persistence.Services
                 GetOrderProductAnalysisElements=groupedResult
             };
         }
+
+        public async Task<List<GetAgencyCommentAnalysis>> GetAgencyCommentAnalysis(DateTime startDate, DateTime endDate,string? groupBy)
+        {
+            var ageny = await ContextUser();
+            var agencyCommentsQuery= _commentReadRepository.GetWhere(u=> u.Agency.Id==ageny.Id)
+                .Where(u => u.CreatedDate.Date >= startDate.Date && u.CreatedDate.Date <= endDate.Date)
+                .Include(u => u.Agency).Include(u=>u.Customer)
+                .AsQueryable();
+            var groupedComments = groupBy.ToLower() switch
+            {
+                "month" => agencyCommentsQuery
+                    .GroupBy(o => new { o.CreatedDate.Year, o.CreatedDate.Month })
+                    .Select(u => new GetAgencyCommentAnalysis
+                    {
+                        AverageStar = (float)u.Average(u => u.StarRating),
+                        Count = u.Count(),
+                        Period = new DateTime(u.Key.Year, u.Key.Month, 1),
+                        TotalUserCount= u.Select(u=>u.Customer).Distinct().Count()
+                    }),
+                "year" => agencyCommentsQuery
+                    .GroupBy(o => o.CreatedDate.Year)
+                    .Select(u => new GetAgencyCommentAnalysis
+                    {
+                        AverageStar = (float)u.Average(u => u.StarRating),
+                        Count = u.Count(),
+                        Period = new DateTime(u.Key, 1, 1),
+                        TotalUserCount = u.Select(u => u.Customer).Distinct().Count()
+                    }),
+                _ => agencyCommentsQuery
+                    .GroupBy(o => o.CreatedDate.Date)
+                    .Select(u => new GetAgencyCommentAnalysis
+                    {
+                        AverageStar = (float)u.Average(u => u.StarRating),
+                        Count = u.Count(),
+                        Period = u.Key,
+                        TotalUserCount = u.Select(u => u.Customer).Distinct().Count()
+                    })
+            };
+            return await groupedComments.ToListAsync();
+        }
     }
 }

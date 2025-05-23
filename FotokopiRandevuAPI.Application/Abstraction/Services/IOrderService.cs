@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace FotokopiRandevuAPI.Application.Abstraction.Services
@@ -20,6 +21,6 @@ namespace FotokopiRandevuAPI.Application.Abstraction.Services
         Task<SucceededMessageResponse> CancelOrderAsync(string orderCode);
         Task<SucceededMessageResponse> CreateComment(CreateComment? createComment);
         Task<GetOrderProductAnalysis> GetOrderProductAnalysis(DateTime startDate, DateTime endDate, string? paperType,string? colorOption,string? printType);
-        
+        Task<List<GetAgencyCommentAnalysis>> GetAgencyCommentAnalysis(DateTime startDate, DateTime endDate,string? groupBy);
     }
 }
