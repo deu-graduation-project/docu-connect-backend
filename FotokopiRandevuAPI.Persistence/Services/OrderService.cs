@@ -12,6 +12,7 @@ using FotokopiRandevuAPI.Domain.Entities.Files;
 using FotokopiRandevuAPI.Domain.Entities.Identity;
 using FotokopiRandevuAPI.Domain.Entities.Identity.Extra;
 using FotokopiRandevuAPI.Domain.Entities.Order;
+using FotokopiRandevuAPI.Domain.Entities.Products;
 using FotokopiRandevuAPI.Persistence.Repositories.OrderRepositories;
 using iText.Kernel.Pdf;
 using iText.Layout.Borders;
@@ -877,6 +878,57 @@ namespace FotokopiRandevuAPI.Persistence.Services
             {
                 Succeeded = false,
                 Message = "Yıldız değerlendirmesi 0dan büyük olmalıdır."
+            };
+        }
+
+        public async Task<GetOrderProductAnalysis> GetOrderProductAnalysis(DateTime startDate, DateTime endDate,string? paperType, string? colorOption, string? printType)
+        {
+            var customer = await ContextUser();
+            var ordersQuery = _orderReadRepository.GetWhere(u => u.Agency.Id == customer.Id)
+                .Where(u=>u.CreatedDate.Date >= startDate.Date && u.CreatedDate.Date <= endDate.Date)
+                .Include(u => u.Agency).Include(u=>u.AgencyProduct).ThenInclude(u=> u.Product)
+                .AsQueryable();
+
+            PrintTypes? parsedPrintType = null; // Nullable Enum
+
+            if (Enum.TryParse<PrintTypes>(printType, true, out var result))
+            {
+                parsedPrintType = result;
+            }
+            ColorOptions? parsedColorOption= null; // Nullable Enum
+
+            if (Enum.TryParse<ColorOptions>(colorOption, true, out var colorOptionResult))
+            {
+                parsedColorOption = colorOptionResult;
+            }
+
+            if (!string.IsNullOrEmpty(paperType))
+                ordersQuery = ordersQuery.Where(u => u.AgencyProduct.Product.PaperType == paperType);
+            if (parsedColorOption!=null)
+                ordersQuery = ordersQuery.Where(u => u.AgencyProduct.Product.ColorOption == parsedColorOption);
+            if (parsedPrintType != null)
+                ordersQuery = ordersQuery.Where(u => u.AgencyProduct.Product.PrintType==parsedPrintType );
+
+            var orders = await ordersQuery.ToListAsync();
+            var groupedResult = await ordersQuery
+                        .GroupBy(u => new
+                        {
+                            u.AgencyProduct.Id,
+                            u.AgencyProduct.Product.PaperType,
+                            u.AgencyProduct.Product.ColorOption,
+                            u.AgencyProduct.Product.PrintType
+                        })
+                        .Select( g => new GetOrderProductAnalysisElement
+                        {
+                            PaperType = g.Key.PaperType,
+                            ColorOption = g.Key.ColorOption.ToString(),
+                            PrintType = g.Key.PrintType.ToString(),
+                            Count = g.Count(),
+                        })
+                        .ToListAsync();
+            return new()
+            {
+                GetOrderProductAnalysisElements=groupedResult
             };
         }
     }

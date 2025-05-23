@@ -4,6 +4,7 @@ using FotokopiRandevuAPI.Application.Features.Commands.Order.CreateOrder;
 using FotokopiRandevuAPI.Application.Features.Commands.Order.UpdateOrder;
 using FotokopiRandevuAPI.Application.Features.Commands.Product.CreateProduct;
 using FotokopiRandevuAPI.Application.Features.Queries.Order.GetAgencyAnalytics;
+using FotokopiRandevuAPI.Application.Features.Queries.Order.GetOrderProductAnalysis;
 using FotokopiRandevuAPI.Application.Features.Queries.Order.GetOrders;
 using FotokopiRandevuAPI.Application.Features.Queries.Order.GetSingleOrder;
 using MediatR;
@@ -78,6 +79,13 @@ namespace FotokopiRandevuAPI.API.Controllers
             CreateCommentCommandResponse response = await _mediator.Send(request);
             return Ok(response);
         }
-
+        [HttpGet("[action]")]
+        [Authorize(AuthenticationSchemes = "Admin")]
+        [Authorize(Roles = "admin,agency")]
+        public async Task<IActionResult> GetOrderProductAnalysis([FromQuery] GetOrderProductAnalysisCommandRequest request)
+        {
+            GetOrderProductAnalysisCommandResponse response = await _mediator.Send(request);
+            return Ok(response);
+        }
     }
 }

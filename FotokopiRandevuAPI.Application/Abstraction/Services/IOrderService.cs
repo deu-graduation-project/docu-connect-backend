@@ -19,5 +19,7 @@ namespace FotokopiRandevuAPI.Application.Abstraction.Services
         Task<CreateOrderResponse> CreateOrderFromWebhookAsync(CreateOrderFromWebhookDto createOrderDto); // Added for webhook
         Task<SucceededMessageResponse> CancelOrderAsync(string orderCode);
         Task<SucceededMessageResponse> CreateComment(CreateComment? createComment);
+        Task<GetOrderProductAnalysis> GetOrderProductAnalysis(DateTime startDate, DateTime endDate, string? paperType,string? colorOption,string? printType);
+        
     }
 }
